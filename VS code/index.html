@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 World Cup Prediction League</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">2026 FIFA World Cup</p>
+        <h1>Football Prediction League</h1>
+      </div>
+      <p class="hero-copy">Use the upcoming 2026 fixtures from the local JSON file to make your predictions and track the scoreboard.</p>
+    </header>
+
+    <main>
+      <section class="card" id="upcoming-card">
+        <h2>Upcoming fixtures</h2>
+        <div id="fixtures-list" class="fixtures-grid"></div>
+      </section>
+
+      <section class="card" id="prediction-card">
+        <h2>Make a prediction</h2>
+        <form id="prediction-form" class="prediction-form">
+          <div class="form-row">
+            <label>
+              Your name
+              <input id="player-name" type="text" placeholder="Enter name" required>
+            </label>
+          </div>
+
+          <div class="form-row">
+            <label>
+              Match
+              <select id="match-select" required></select>
+            </label>
+          </div>
+
+          <div class="form-row score-row">
+            <label>
+              Home score
+              <input id="home-score" type="number" min="0" value="0" required>
+            </label>
+            <label>
+              Away score
+              <input id="away-score" type="number" min="0" value="0" required>
+            </label>
+          </div>
+
+          <button type="submit">Save prediction</button>
+          <p class="feedback" id="prediction-feedback"></p>
+        </form>
+      </section>
+
+      <section class="card" id="ai-card">
+        <div class="ai-header">
+          <h2>AI Bot predictions</h2>
+          <button id="generate-ai" type="button">Generate AI predictions</button>
+        </div>
+        <p class="hero-copy">The AI bot uses the upcoming fixture data to predict both score and match result.</p>
+        <div id="ai-predictions" class="ai-grid"></div>
+      </section>
+
+      <section class="card" id="leaderboard-card">
+        <h2>Prediction leaderboard</h2>
+        <div id="leaderboard"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
