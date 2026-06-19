@@ -1,0 +1,52 @@
+{
+  "fixtures": [
+    {
+      "id": 1,
+      "group": "A",
+      "date": "2026-06-19T15:00:00Z",
+      "homeTeam": "Canada",
+      "awayTeam": "Belgium",
+      "location": "Vancouver"
+    },
+    {
+      "id": 2,
+      "group": "A",
+      "date": "2026-06-20T18:00:00Z",
+      "homeTeam": "Morocco",
+      "awayTeam": "Croatia",
+      "location": "Toronto"
+    },
+    {
+      "id": 3,
+      "group": "B",
+      "date": "2026-06-21T17:00:00Z",
+      "homeTeam": "Spain",
+      "awayTeam": "Germany",
+      "location": "Mexico City"
+    },
+    {
+      "id": 4,
+      "group": "B",
+      "date": "2026-06-22T20:00:00Z",
+      "homeTeam": "USA",
+      "awayTeam": "Netherlands",
+      "location": "New York"
+    },
+    {
+      "id": 5,
+      "group": "C",
+      "date": "2026-06-23T16:00:00Z",
+      "homeTeam": "Argentina",
+      "awayTeam": "Portugal",
+      "location": "Buenos Aires"
+    },
+    {
+      "id": 6,
+      "group": "C",
+      "date": "2026-06-24T19:00:00Z",
+      "homeTeam": "Brazil",
+      "awayTeam": "France",
+      "location": "São Paulo"
+    }
+  ]
+}
