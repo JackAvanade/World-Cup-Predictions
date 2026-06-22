@@ -1,0 +1,12 @@
+C:\Users\joshua.t.wafer\WC-Prediction\functions\bin\Release\net8.0\WorldCupFunctions.deps.json
+C:\Users\joshua.t.wafer\WC-Prediction\functions\bin\Release\net8.0\WorldCupFunctions.dll
+C:\Users\joshua.t.wafer\WC-Prediction\functions\bin\Release\net8.0\WorldCupFunctions.pdb
+C:\Users\joshua.t.wafer\WC-Prediction\functions\obj\Release\net8.0\WorldCupFunctions.csproj.AssemblyReference.cache
+C:\Users\joshua.t.wafer\WC-Prediction\functions\obj\Release\net8.0\WorldCupFunctions.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\joshua.t.wafer\WC-Prediction\functions\obj\Release\net8.0\WorldCupFunctions.AssemblyInfoInputs.cache
+C:\Users\joshua.t.wafer\WC-Prediction\functions\obj\Release\net8.0\WorldCupFunctions.AssemblyInfo.cs
+C:\Users\joshua.t.wafer\WC-Prediction\functions\obj\Release\net8.0\WorldCupFunctions.csproj.CoreCompileInputs.cache
+C:\Users\joshua.t.wafer\WC-Prediction\functions\obj\Release\net8.0\WorldCupFunctions.dll
+C:\Users\joshua.t.wafer\WC-Prediction\functions\obj\Release\net8.0\refint\WorldCupFunctions.dll
+C:\Users\joshua.t.wafer\WC-Prediction\functions\obj\Release\net8.0\WorldCupFunctions.pdb
+C:\Users\joshua.t.wafer\WC-Prediction\functions\obj\Release\net8.0\ref\WorldCupFunctions.dll
