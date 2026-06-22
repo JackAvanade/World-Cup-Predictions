@@ -1,4 +1,0 @@
-[
-  {"name":"Alice","predictions":[{"matchId":1,"home":2,"away":1},{"matchId":2,"home":1,"away":0},{"matchId":3,"home":1,"away":1}]},
-  {"name":"Bob","predictions":[{"matchId":1,"home":1,"away":2},{"matchId":2,"home":2,"away":1},{"matchId":3,"home":0,"away":1}]}
-]
