@@ -1,0 +1,12 @@
+{
+  "name": "world-cup-predictor",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "lite-server",
+    "build": "echo 'Build complete'"
+  },
+  "devDependencies": {
+    "lite-server": "^2.6.1"
+  }
+}
