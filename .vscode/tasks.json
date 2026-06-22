@@ -1,0 +1,15 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Fix AI service types",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$path = 'c:\\Users\\joshua.t.wafer\\WC-Prediction\\functions\\WorldCupAIService.cs'; $text = Get-Content $path -Raw; $text = $text -replace 'using Microsoft.Extensions.Logging;\\r?\\nusing System.Threading.Tasks;','using Azure;\\r\\nusing Azure.AI.OpenAI;\\r\\nusing Azure.Core;\\r\\nusing Microsoft.Extensions.Logging;\\r\\nusing System;\\r\\nusing System.Threading.Tasks;'; $text = $text -replace 'public class WorldCupAIService[\\s\\S]*public Task<string> AnalyzeAsync\\(string worldCupData\\)[\\s\\S]*$','public class WorldCupAIService\\r\\n    {\\r\\n        private readonly ILogger<WorldCupAIService> _logger;\\r\\n        private readonly string _instruction;\\r\\n        private readonly OpenAIClient? _client;\\r\\n        private readonly string? _deploymentName;\\r\\n\\r\\n        public WorldCupAIService(ILogger<WorldCupAIService> logger)\\r\\n        {\\r\\n            _logger = logger;\\r\\n            _instruction = Environment.GetEnvironmentVariable(\"AI_AGENT_INSTRUCTION\") ?? \"Summarize the latest world cup fixture data and produce a short analysis.\";\\r\\n\\r\\n            var endpoint = Environment.GetEnvironmentVariable(\"AZURE_OPENAI_ENDPOINT\");\\r\\n            var apiKey = Environment.GetEnvironmentVariable(\"AZURE_OPENAI_API_KEY\");\\r\\n            _deploymentName = Environment.GetEnvironmentVariable(\"AZURE_OPENAI_DEPLOYMENT_NAME\");\\r\\n\\r\\n            if (!string.IsNullOrEmpty(endpoint) && !string.IsNullOrEmpty(apiKey) && !string.IsNullOrEmpty(_deploymentName))\\r\\n            {\\r\\n                _client = new OpenAIClient(new Uri(endpoint), new AzureKeyCredential(apiKey));\\r\\n            }\\r\\n        }\\r\\n\\r\\n        public async Task<string> AnalyzeAsync(string worldCupData)\\r\\n        {\\r\\n            _logger.LogInformation(\"Analyzing world cup data with AI instruction.\");\\r\\n\\r\\n            if (_client is null || string.IsNullOrEmpty(_deploymentName))\\r\\n            {\\r\\n                _logger.LogWarning(\"OpenAI client is not configured; returning a placeholder summary.\");\\r\\n                return $\"Instruction: {_instruction}\\n\\nData snapshot:\\n{worldCupData}\";\\r\\n            }\\r\\n\\r\\n            var prompt = $\"{_instruction}\\n\\nWorld Cup data:\\n{worldCupData}\";\\r\\n            var options = new ChatCompletionsOptions();\\r\\n            options.Messages.Add(new ChatMessage(ChatRole.System, _instruction));\\r\\n            options.Messages.Add(new ChatMessage(ChatRole.User, prompt));\\r\\n            options.MaxTokens = 800;\\r\\n\\r\\n            var response = await _client.GetChatCompletionsAsync(_deploymentName, options);\\r\\n            return response.Value.Choices[0].Message.Content.Trim();\\r\\n        }\\r\\n    }'; Set-Content $path $text; Write-Output 'updated';"
+			]
+		}
+	]
+}
