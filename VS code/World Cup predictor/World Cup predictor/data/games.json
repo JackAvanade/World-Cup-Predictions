@@ -1,0 +1,5 @@
+[
+  {"id":1,"home":"Brazil","away":"Argentina","scoreHome":2,"scoreAway":1},
+  {"id":2,"home":"France","away":"Croatia","scoreHome":null,"scoreAway":null},
+  {"id":3,"home":"Germany","away":"Spain","scoreHome":1,"scoreAway":1}
+]
