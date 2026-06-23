@@ -8,12 +8,10 @@ const BASE_URL = "https://worldcuppredictions.blob.core.windows.net/worldcuppred
 // ✅ Load BOTH group stage and knockout files
 const DATA_FILES = [
   "cup.txt",
-  "cup_finals.txt",
-  "cup_stadiums.csv",
-  "quali_playoffs.txt"
+  "cup_finals.txt"
 ];
 
-// ✅ Main app state
+// ✅ App state
 let allMatches = [];
 let currentFilter = "all";
 let currentDay = "";
@@ -42,24 +40,33 @@ async function loadMatches() {
   }
 
   try {
-    const responses = await Promise.all(
-      DATA_FILES.map(file =>
-        fetch(BASE_URL + file + "?cache=" + Date.now())
-      )
-    );
+    const cupUrl = BASE_URL + "cup.txt?cache=" + Date.now();
+    const finalsUrl = BASE_URL + "cup_finals.txt?cache=" + Date.now();
 
-    for (const response of responses) {
-      if (!response.ok) {
-        throw new Error("Could not load one of the data files.");
-      }
+    const [cupResponse, finalsResponse] = await Promise.all([
+      fetch(cupUrl),
+      fetch(finalsUrl)
+    ]);
+
+    if (!cupResponse.ok) {
+      throw new Error("Could not load cup.txt");
     }
 
-    const texts = await Promise.all(responses.map(response => response.text()));
+    if (!finalsResponse.ok) {
+      throw new Error("Could not load cup_finals.txt");
+    }
 
-    const cupMatches = parseMatches(texts[0], "Group Stage");
-    const finalsMatches = parseMatches(texts[1], "Knockout Stage");
+    const cupText = await cupResponse.text();
+    const finalsText = await finalsResponse.text();
+
+    const cupMatches = parseMatches(cupText, "Group Stage");
+    const finalsMatches = parseMatches(finalsText, "Knockout Stage");
 
     allMatches = [...cupMatches, ...finalsMatches];
+
+    console.log("Group stage matches loaded:", cupMatches.length);
+    console.log("Knockout matches loaded:", finalsMatches.length);
+    console.log("Total matches loaded:", allMatches.length);
 
   } catch (error) {
     console.error(error);
@@ -82,29 +89,49 @@ function parseMatches(text, defaultStage) {
   let currentDayLabel = "";
 
   lines.forEach(line => {
-    const cleanLine = line.trim();
+    let cleanLine = line.trim();
 
     if (!cleanLine) return;
 
-    // Detect stage headings like:
+    // Fix occasional weird encoding before headings
+    cleanLine = cleanLine
+      .replace(/^â.=*/g, "")
+      .replace(/^ï»¿/g, "")
+      .trim();
+
+    // Detect headings like:
+    // = Group A
     // = Round of 32
     // = Final
     if (cleanLine.startsWith("=")) {
-      currentStage = cleanLine.replace(/=/g, "").trim();
+      currentStage = cleanLine.replace(/=/g, "").trim() || defaultStage;
+      return;
+    }
+
+    // Detect plain headings
+    if (
+      /^Group\s+[A-Z]/i.test(cleanLine) ||
+      /^Round of/i.test(cleanLine) ||
+      /^Quarter-final/i.test(cleanLine) ||
+      /^Semi-final/i.test(cleanLine) ||
+      /^Final/i.test(cleanLine) ||
+      /^Match for third place/i.test(cleanLine)
+    ) {
+      currentStage = cleanLine;
       return;
     }
 
     // Detect game day lines like:
+    // Thu Jun 11
     // Sun Jun 28
-    // Mon Jun 29
     if (/^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\s+[A-Z][a-z]{2}\s+\d{1,2}/.test(cleanLine)) {
       currentDayLabel = cleanLine;
       return;
     }
 
-    // Match lines look roughly like:
-    // (73) 12:00 UTC-7 2A v 2B @ Los Angeles (Inglewood)
-    if (cleanLine.includes("@") && cleanLine.includes(" v ")) {
+    // Match lines usually contain:
+    // teams v teams @ location
+    if (cleanLine.includes("@") && /\s+v\s+|\s+vs\s+/i.test(cleanLine)) {
       const match = parseMatchLine(cleanLine, currentDayLabel, currentStage);
 
       if (match) {
@@ -120,35 +147,60 @@ function parseMatches(text, defaultStage) {
 // Parse a single match line
 // ===============================
 function parseMatchLine(line, dayLabel, stage) {
-  const regex = /^\((\d+)\)\s+(\d{1,2}:\d{2})\s+UTC([+-]\d+)\s+(.+?)\s+@\s+(.+)$/;
-  const result = line.match(regex);
+  // Handles examples like:
+  // (1) 19:00 UTC-5 Mexico v South Africa @ Mexico City
+  // (73) 12:00 UTC-7 2A v 2B @ Los Angeles (Inglewood)
 
-  if (!result) {
+  const atParts = line.split("@");
+
+  if (atParts.length < 2) {
     return null;
   }
 
-  const matchNumber = result[1];
-  const time = result[2];
-  const utcOffset = Number(result[3]);
-  const teamsText = result[4].trim();
-  const location = result[5].trim();
+  const leftSide = atParts[0].trim();
+  const location = atParts.slice(1).join("@").trim();
 
-  const teams = teamsText.split(/\s+v\s+/);
+  const matchNumberMatch = leftSide.match(/\((\d+)\)/);
+  const matchNumber = matchNumberMatch
+    ? matchNumberMatch[1]
+    : String(Math.random()).slice(2);
 
-  const homeTeam = teams[0] ? teams[0].trim() : "Team A";
-  const awayTeam = teams[1] ? teams[1].trim() : "Team B";
+  const timeMatch = leftSide.match(/(\d{1,2}:\d{2})\s+UTC([+-]\d+)/);
+
+  let time = "";
+  let utcOffset = 0;
+  let teamsText = leftSide;
+
+  if (timeMatch) {
+    time = timeMatch[1];
+    utcOffset = Number(timeMatch[2]);
+
+    teamsText = leftSide
+      .replace(/\((\d+)\)/, "")
+      .replace(/(\d{1,2}:\d{2})\s+UTC([+-]\d+)/, "")
+      .trim();
+  }
+
+  const teams = teamsText.split(/\s+v\s+|\s+vs\s+/i);
+
+  if (teams.length < 2) {
+    return null;
+  }
+
+  const homeTeam = teams[0].trim();
+  const awayTeam = teams[1].trim();
 
   const dateObj = buildMatchDate(dayLabel, time, utcOffset);
 
-  // ✅ Played if score exists OR match has already started
-  const hasScore = /\d+\s*-\s*\d+/.test(line);
+  // ✅ Played if a score exists OR if the match kick-off time has passed
+  const hasScore = /\b\d+\s*-\s*\d+\b/.test(line);
   const hasStarted = dateObj ? dateObj <= new Date() : false;
 
   return {
     id: matchNumber,
     raw: line,
     day: dayLabel || "Unknown day",
-    stage,
+    stage: stage || "Unknown stage",
     time,
     utcOffset,
     homeTeam,
@@ -196,10 +248,11 @@ function buildMatchDate(dayLabel, time, utcOffset) {
   const hour = Number(hourText);
   const minute = Number(minuteText);
 
-  // World Cup 2026
+  // World Cup year
   const year = 2026;
 
-  // If match says 12:00 UTC-7, UTC time is 19:00.
+  // Example:
+  // 12:00 UTC-7 means 19:00 UTC
   const utcHour = hour - utcOffset;
 
   return new Date(Date.UTC(year, month, dayNumber, utcHour, minute));
@@ -273,7 +326,7 @@ function renderMatches() {
 
     card.innerHTML = `
       <div style="font-size:12px;color:#666;margin-bottom:4px;">
-        ${match.stage} • ${match.day} • ${match.time} UTC${match.utcOffset >= 0 ? "+" + match.utcOffset : match.utcOffset}
+        ${match.stage} • ${match.day} • ${match.time ? `${match.time} UTC${match.utcOffset >= 0 ? "+" + match.utcOffset : match.utcOffset}` : ""}
       </div>
 
       <div style="font-weight:700;margin-bottom:6px;">
@@ -467,4 +520,3 @@ function renderLeaderboard() {
     leaderboard.appendChild(row);
   });
 }
-``
