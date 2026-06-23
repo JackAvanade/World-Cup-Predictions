@@ -1,4 +1,4 @@
-name: Sync external dataset to Azure
+name: Sync World Cup dataset folder to Azure Blob
 
 on:
   schedule:
@@ -10,14 +10,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download dataset from GitHub
-        run: |
-          curl -L https://raw.githubusercontent.com/openfootball/worldcup/main/2022/worldcup.json -o data.json
+      - name: Checkout only the 2026 USA dataset folder
+        uses: actions/checkout@v4
+        with:
+          repository: openfootball/worldcup
+          ref: master
+          path: worldcup
+          sparse-checkout: |
+            2026--usa
+          sparse-checkout-cone-mode: false
 
-      - name: Upload to Azure Blob
+      - name: Check downloaded files
+        run: |
+          echo "Files downloaded:"
+          find worldcup/2026--usa -type f
+          test -n "$(find worldcup/2026--usa -type f)"
+
+      - name: Upload folder to Azure Blob
         uses: bacongobbler/azure-blob-storage-upload@main
         with:
-          source_dir: .
+          source_dir: ./worldcup/2026--usa
           container_name: worldcuppredictions
           connection_string: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
           overwrite: 'true'
+          sync: 'true'
