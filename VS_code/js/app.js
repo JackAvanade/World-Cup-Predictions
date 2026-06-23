@@ -1,5 +1,5 @@
 // ===============================
-// World Cup Predictor - app.js
+// World Cup Predictor - FULL BUILD
 // ===============================
 
 const BASE_URL = "https://worldcuppredictions.blob.core.windows.net/worldcuppredictions/";
@@ -7,48 +7,60 @@ const BASE_URL = "https://worldcuppredictions.blob.core.windows.net/worldcuppred
 let allMatches = [];
 let currentFilter = "all";
 let currentDay = "";
+let predictions = loadPredictions();
 
-window.addEventListener("DOMContentLoaded", initApp);
-
-async function initApp() {
+// ===============================
+// INIT
+// ===============================
+window.addEventListener("DOMContentLoaded", async () => {
   setupButtons();
   await loadMatches();
   sortMatches();
   populateGameDays();
   renderMatches();
-}
+  renderLeaderboard();
+});
 
 // ===============================
-// Load matches
+// LOAD DATA
 // ===============================
 async function loadMatches() {
-  const [cupRes, finalsRes] = await Promise.all([
-    fetch(BASE_URL + "cup.txt"),
-    fetch(BASE_URL + "cup_finals.txt")
-  ]);
+  const container = document.getElementById("matches-list");
+  container.innerHTML = "Loading matches...";
 
-  const cupText = await cupRes.text();
-  const finalsText = await finalsRes.text();
+  try {
+    const [cupRes, finalsRes] = await Promise.all([
+      fetch(BASE_URL + "cup.txt?cache=" + Date.now()),
+      fetch(BASE_URL + "cup_finals.txt?cache=" + Date.now())
+    ]);
 
-  allMatches = [
-    ...parseMatches(cupText, "Group Stage"),
-    ...parseMatches(finalsText, "Knockout")
-  ];
+    const cupText = await cupRes.text();
+    const finalsText = await finalsRes.text();
+
+    const groupMatches = parseMatches(cupText, "Group Stage");
+    const knockoutMatches = parseMatches(finalsText, "Knockout");
+
+    allMatches = [...groupMatches, ...knockoutMatches];
+
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = "Error loading matches";
+  }
 }
 
 // ===============================
-// Sort matches safely
+// SORT MATCHES
 // ===============================
 function sortMatches() {
   allMatches.sort((a, b) => {
-    const aTime = a.dateObj ? a.dateObj.getTime() : Infinity;
-    const bTime = b.dateObj ? b.dateObj.getTime() : Infinity;
-    return aTime - bTime;
+    const t1 = a.dateObj ? a.dateObj.getTime() : Infinity;
+    const t2 = b.dateObj ? b.dateObj.getTime() : Infinity;
+    return t1 - t2;
   });
 }
 
 // ===============================
-// Parse matches
+// PARSE MATCHES
 // ===============================
 function parseMatches(text, defaultStage) {
   const lines = text.split("\n");
@@ -62,13 +74,11 @@ function parseMatches(text, defaultStage) {
     const clean = line.trim();
     if (!clean) return;
 
-    // Detect day anywhere in line
-    const dateMatch = clean.match(/(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\s+(\w+)\s+(\d{1,2})/i);
-    if (dateMatch) {
-      day = `${dateMatch[1]} ${dateMatch[2]} ${dateMatch[3]}`;
+    const d = clean.match(/(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\s+(\w+)\s+(\d{1,2})/i);
+    if (d) {
+      day = `${d[1]} ${d[2].substring(0,3)} ${d[3]}`;
     }
 
-    // Detect stage
     if (clean.startsWith("=")) {
       stage = clean.replace(/=/g, "").trim();
       return;
@@ -84,7 +94,7 @@ function parseMatches(text, defaultStage) {
 }
 
 // ===============================
-// Parse one match
+// PARSE SINGLE MATCH
 // ===============================
 function parseMatch(line, day, stage) {
   const parts = line.split("@");
@@ -93,42 +103,34 @@ function parseMatch(line, day, stage) {
   const left = parts[0].trim();
   const location = parts[1].trim();
 
-  // time
   const timeMatch = left.match(/(\d{1,2}:\d{2})\s+UTC([+-]\d+)/);
+
   let time = "";
-  let utcOffset = 0;
-  let teamsText = left;
+  let offset = 0;
+  let teams = left;
 
   if (timeMatch) {
     time = timeMatch[1];
-    utcOffset = Number(timeMatch[2]);
+    offset = Number(timeMatch[2]);
 
-    teamsText = left
+    teams = left
       .replace(/(\d{1,2}:\d{2})\s+UTC([+-]\d+)/, "")
       .replace(/\(\d+\)/, "")
       .trim();
   }
 
-  let home = "";
-  let away = "";
+  const [home, away] = teams.split(/\s+v\s+|\s+vs\s+/i);
 
-  const vsSplit = teamsText.split(/\s+v\s+|\s+vs\s+/i);
-
-  if (vsSplit.length >= 2) {
-    home = vsSplit[0].trim();
-    away = vsSplit[1].trim();
-  }
-
-  const dateObj = buildDate(day, time, utcOffset);
+  const dateObj = buildDate(day, time, offset);
 
   return {
     id: Math.random().toString(36).slice(2),
-    homeTeam: home,
-    awayTeam: away,
+    homeTeam: home?.trim(),
+    awayTeam: away?.trim(),
     day,
     stage,
     time,
-    utcOffset,
+    utcOffset: offset,
     location,
     dateObj,
     played: dateObj ? dateObj <= new Date() : false
@@ -136,52 +138,32 @@ function parseMatch(line, day, stage) {
 }
 
 // ===============================
-// Build Date
+// BUILD DATE
 // ===============================
 function buildDate(day, time, offset) {
   if (!day || !time) return null;
 
   const parts = day.split(" ");
-  if (parts.length < 3) return null;
 
-  const monthMap = {
-    Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-    Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
+  const months = {
+    Jan:0, Feb:1, Mar:2, Apr:3, May:4,
+    Jun:5, Jul:6, Aug:7, Sep:8,
+    Oct:9, Nov:10, Dec:11
   };
 
-  const month = monthMap[parts[1]];
-  const dayNum = Number(parts[2]);
+  const [h,m] = time.split(":");
 
-  const [h, m] = time.split(":");
-
-  return new Date(Date.UTC(2026, month, dayNum, Number(h) - offset, Number(m)));
+  return new Date(Date.UTC(
+    2026,
+    months[parts[1]],
+    Number(parts[2]),
+    Number(h) - offset,
+    Number(m)
+  ));
 }
 
 // ===============================
-// Dropdown
-// ===============================
-function populateGameDays() {
-  const select = document.getElementById("game-day-select");
-
-  const days = [...new Set(allMatches.map(m => m.day))];
-
-  select.innerHTML = `<option value="">All days</option>`;
-
-  days.forEach(d => {
-    const opt = document.createElement("option");
-    opt.value = d;
-    opt.textContent = d;
-    select.appendChild(opt);
-  });
-
-  select.onchange = () => {
-    currentDay = select.value;
-    renderMatches();
-  };
-}
-
-// ===============================
-// Render matches (✅ NICE UI)
+// UI - MATCH RENDER
 // ===============================
 function renderMatches() {
   const container = document.getElementById("matches-list");
@@ -189,6 +171,7 @@ function renderMatches() {
 
   let matches = [...allMatches];
 
+  // Filters
   if (currentFilter === "played") {
     matches = matches.filter(m => m.played);
   } else if (currentFilter === "unplayed") {
@@ -209,13 +192,17 @@ function renderMatches() {
     card.style.background = match.played ? "#e6f4ea" : "#fff7e6";
 
     const timeText = match.time
-      ? `${match.time} UTC${match.utcOffset >= 0 ? "+" + match.utcOffset : match.utcOffset}`
+      ? `${match.time} UTC${match.utcOffset >= 0 ? "+"+match.utcOffset : match.utcOffset}`
       : "";
 
+    const user = document.getElementById("predictor-name").value;
+
+    const saved = predictions[user]?.[match.id] || {};
+
     card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:20px;">
         
-        <div style="flex:1;">
+        <div>
           <div style="font-size:12px;color:#666;">
             ${match.stage} • ${match.day}
           </div>
@@ -230,9 +217,9 @@ function renderMatches() {
         </div>
 
         <div style="display:flex;gap:6px;">
-          <input type="number" min="0" style="width:50px;text-align:center;">
+          <input value="${saved.home || ""}" type="number" data-id="${match.id}" data-side="home" style="width:50px;">
           <span>-</span>
-          <input type="number" min="0" style="width:50px;text-align:center;">
+          <input value="${saved.away || ""}" type="number" data-id="${match.id}" data-side="away" style="width:50px;">
         </div>
 
       </div>
@@ -243,7 +230,7 @@ function renderMatches() {
 }
 
 // ===============================
-// Buttons
+// BUTTONS
 // ===============================
 function setupButtons() {
   document.getElementById("filter-all").onclick = () => {
@@ -260,4 +247,56 @@ function setupButtons() {
     currentFilter = "unplayed";
     renderMatches();
   };
+
+  document.getElementById("save-predictions").onclick = savePredictions;
 }
+
+// ===============================
+// PREDICTIONS
+// ===============================
+function savePredictions() {
+  const name = document.getElementById("predictor-name").value;
+  if (!name) return alert("Enter a name");
+
+  if (!predictions[name]) predictions[name] = {};
+
+  document.querySelectorAll("input[type=number]").forEach(input => {
+    const id = input.dataset.id;
+    const side = input.dataset.side;
+
+    if (!predictions[name][id]) predictions[name][id] = {};
+
+    predictions[name][id][side] = input.value;
+  });
+
+  localStorage.setItem("predictions", JSON.stringify(predictions));
+  renderLeaderboard();
+}
+
+function loadPredictions() {
+  return JSON.parse(localStorage.getItem("predictions") || "{}");
+}
+
+// ===============================
+// LEADERBOARD
+// ===============================
+function renderLeaderboard() {
+  const box = document.getElementById("leaderboard-list");
+
+  const names = Object.keys(predictions);
+
+  if (!names.length) {
+    box.innerHTML = "No predictions yet.";
+    return;
+  }
+
+  box.innerHTML = names.map(n => {
+    const count = Object.keys(predictions[n]).length;
+    return `<div><b>${n}</b> — ${count} predictions</div>`;
+  }).join("");
+}
+
+// ===============================
+// DROPDOWN
+// ===============================
+function populateGameDays() {
