@@ -18,6 +18,6 @@ jobs:
         uses: bacongobbler/azure-blob-storage-upload@main
         with:
           source_dir: .
-          container_name: dataset
+          container_name: worldcuppredictions
           connection_string: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
           overwrite: 'true'
