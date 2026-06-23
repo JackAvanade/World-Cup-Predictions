@@ -2,10 +2,10 @@
 // World Cup Predictor - app.js
 // ===============================
 
-// ✅ Azure Blob Storage base URL
+// Azure Blob Storage base URL
 const BASE_URL = "https://worldcuppredictions.blob.core.windows.net/worldcuppredictions/";
 
-// ✅ Files to load from Azure Blob
+// Files loaded from Azure Blob
 const DATA_FILES = [
   {
     file: "cup.txt",
@@ -17,14 +17,8 @@ const DATA_FILES = [
   }
 ];
 
-// ✅ App state
-let matches = [...allMatches].sort((a, b) => {
-  const dateA = a.dateObj ? a.dateObj.getTime() : Infinity;
-  const dateB = b.dateObj ? b.dateObj.getTime() : Infinity;
-
-  return dateA - dateB;
-});
-
+// App state
+let allMatches = [];
 let currentFilter = "all";
 let currentDay = "";
 
@@ -36,13 +30,14 @@ window.addEventListener("DOMContentLoaded", initApp);
 async function initApp() {
   setupButtons();
   await loadMatches();
+  sortAllMatches();
   populateGameDays();
   renderMatches();
   renderLeaderboard();
 }
 
 // ===============================
-// Load files from Azure Blob
+// Load match files from Azure Blob
 // ===============================
 async function loadMatches() {
   const matchesList = document.getElementById("matches-list");
@@ -74,7 +69,6 @@ async function loadMatches() {
     loadedFiles.forEach(file => {
       const matches = parseMatches(file.text, file.label);
       allMatches = allMatches.concat(matches);
-
       console.log(`${file.label} matches loaded:`, matches.length);
     });
 
@@ -84,9 +78,32 @@ async function loadMatches() {
     console.error(error);
 
     if (matchesList) {
-      matchesList.innerHTML = "Error loading match data.";
+      matchesList.innerHTML = `
+        <p style="color:red;">
+          Error loading match data. Open the browser console with F12 to see the exact issue.
+        </p>
+      `;
     }
   }
+}
+
+// ===============================
+// Sort matches chronologically
+// ===============================
+function sortAllMatches() {
+  allMatches.sort((a, b) => {
+    const dateA = a.dateObj instanceof Date && !isNaN(a.dateObj) ? a.dateObj.getTime() : Number.MAX_SAFE_INTEGER;
+    const dateB = b.dateObj instanceof Date && !isNaN(b.dateObj) ? b.dateObj.getTime() : Number.MAX_SAFE_INTEGER;
+
+    if (dateA !== dateB) {
+      return dateA - dateB;
+    }
+
+    const idA = Number(String(a.id).replace(/\D/g, "")) || 0;
+    const idB = Number(String(b.id).replace(/\D/g, "")) || 0;
+
+    return idA - idB;
+  });
 }
 
 // ===============================
@@ -111,8 +128,8 @@ function parseMatches(text, defaultStage) {
       .replace(/^â.=*/g, "")
       .trim();
 
-    // ✅ Detect dates anywhere in the line.
-    // This catches:
+    // Detect dates anywhere in the line.
+    // Examples:
     // Thu Jun 11
     // Thu June 11
     // ▪ Group A Thu June 11
@@ -123,7 +140,7 @@ function parseMatches(text, defaultStage) {
       currentDayLabel = detectedDay;
     }
 
-    // ✅ Detect group lines with teams:
+    // Detect group list lines:
     // Group A | Mexico South Africa South Korea Czech Republic
     const groupListMatch = cleanLine.match(/^Group\s+([A-Z])\s*\|/i);
 
@@ -132,7 +149,7 @@ function parseMatches(text, defaultStage) {
       return;
     }
 
-    // ✅ Detect bullet group date lines:
+    // Detect bullet group date lines:
     // ▪ Group A Thu June 11
     const bulletGroupMatch = cleanLine.match(/^▪?\s*Group\s+([A-Z])/i);
 
@@ -141,15 +158,21 @@ function parseMatches(text, defaultStage) {
       return;
     }
 
-    // ✅ Detect headings like:
+    // Detect headings:
+    // = World Cup 2026
     // = Round of 32
     // = Final
     if (cleanLine.startsWith("=")) {
-      currentStage = cleanLine.replace(/=/g, "").trim() || defaultStage;
+      const heading = cleanLine.replace(/=/g, "").trim();
+
+      if (heading) {
+        currentStage = heading;
+      }
+
       return;
     }
 
-    // ✅ Detect plain knockout headings
+    // Detect plain knockout headings
     if (
       /^Round of/i.test(cleanLine) ||
       /^Quarter-final/i.test(cleanLine) ||
@@ -161,8 +184,8 @@ function parseMatches(text, defaultStage) {
       return;
     }
 
-    // ✅ Match lines normally include:
-    // time + teams + @ location
+    // Match lines normally contain:
+    // time + teams/result + @ location
     if (cleanLine.includes("@") && /\d{1,2}:\d{2}\s+UTC[+-]\d+/i.test(cleanLine)) {
       const match = parseMatchLine(
         cleanLine,
@@ -182,7 +205,7 @@ function parseMatches(text, defaultStage) {
 }
 
 // ===============================
-// Extract day label from any line
+// Extract day label from text
 // ===============================
 function extractDayLabel(line) {
   const dayNames = "(Sun|Mon|Tue|Wed|Thu|Fri|Sat)";
@@ -191,7 +214,7 @@ function extractDayLabel(line) {
   // Example:
   // Thu Jun 11
   // Thu June 11
-  // ▪ Group A Thu June 11
+  // Group A Thu June 11
   let match = line.match(new RegExp(`${dayNames}\\s+${monthNames}\\s+(\\d{1,2})`, "i"));
 
   if (match) {
@@ -245,7 +268,7 @@ function normaliseMonth(month) {
 }
 
 // ===============================
-// Parse a single match line
+// Parse one match line
 // ===============================
 function parseMatchLine(line, dayLabel, stage, fallbackMatchNumber) {
   const atParts = line.split("@");
@@ -257,17 +280,12 @@ function parseMatchLine(line, dayLabel, stage, fallbackMatchNumber) {
   const leftSide = atParts[0].trim();
   const location = atParts.slice(1).join("@").trim();
 
-  // Optional match number:
-  // (1)
-  // (73)
   const matchNumberMatch = leftSide.match(/\((\d+)\)/);
 
   const matchNumber = matchNumberMatch
     ? matchNumberMatch[1]
     : `${stage.replace(/\s+/g, "-")}-${fallbackMatchNumber}`;
 
-  // Time:
-  // 13:00 UTC-6
   const timeMatch = leftSide.match(/(\d{1,2}:\d{2})\s+UTC([+-]\d+)/i);
 
   let time = "";
@@ -288,7 +306,7 @@ function parseMatchLine(line, dayLabel, stage, fallbackMatchNumber) {
   let awayTeam = "";
   let score = "";
 
-  // ✅ Fixture format:
+  // Fixture format:
   // Team A v Team B
   // Team A vs Team B
   const fixtureSplit = teamsText.split(/\s+v\s+|\s+vs\s+/i);
@@ -297,9 +315,9 @@ function parseMatchLine(line, dayLabel, stage, fallbackMatchNumber) {
     homeTeam = fixtureSplit[0].trim();
     awayTeam = fixtureSplit.slice(1).join(" v ").trim();
   } else {
-    // ✅ Result format:
-    // Mexico 2-0 (1-0) South Africa
+    // Result format:
     // Mexico 2-0 South Africa
+    // Mexico 2-0 (1-0) South Africa
     const resultMatch = teamsText.match(/^(.+?)\s+(\d+\s*-\s*\d+)(?:\s+\([^)]+\))?\s+(.+)$/);
 
     if (resultMatch) {
@@ -313,7 +331,6 @@ function parseMatchLine(line, dayLabel, stage, fallbackMatchNumber) {
 
   const dateObj = buildMatchDate(dayLabel, time, utcOffset);
 
-  // ✅ Played if score exists OR if kick-off has passed
   const hasScore = score !== "" || /\b\d+\s*-\s*\d+\b/.test(line);
   const hasStarted = dateObj ? dateObj <= new Date() : false;
 
@@ -334,14 +351,13 @@ function parseMatchLine(line, dayLabel, stage, fallbackMatchNumber) {
 }
 
 // ===============================
-// Convert schedule text into Date
+// Convert text date/time to Date
 // ===============================
 function buildMatchDate(dayLabel, time, utcOffset) {
   if (!dayLabel || !time) return null;
 
   const parts = dayLabel.split(" ");
 
-  // Example: Sun Jun 28
   if (parts.length < 3) return null;
 
   const monthText = parts[1];
@@ -387,9 +403,14 @@ function populateGameDays() {
 
   if (!select) return;
 
-  const days = [...new Set(allMatches.map(match => match.day))];
+  const days = [...new Set(allMatches.map(match => match.day))]
+    .sort((a, b) => {
+      const dateA = getDaySortDate(a);
+      const dateB = getDaySortDate(b);
+      return dateA - dateB;
+    });
 
-  select.innerHTML = `<option value="">All game days</option>`;
+  select.innerHTML = `<option value="">All days</option>`;
 
   days.forEach(day => {
     const option = document.createElement("option");
@@ -404,6 +425,42 @@ function populateGameDays() {
   });
 }
 
+function getDaySortDate(dayLabel) {
+  if (!dayLabel || dayLabel === "Unknown day") {
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  const parts = dayLabel.split(" ");
+
+  if (parts.length < 3) {
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  const monthMap = {
+    Jan: 0,
+    Feb: 1,
+    Mar: 2,
+    Apr: 3,
+    May: 4,
+    Jun: 5,
+    Jul: 6,
+    Aug: 7,
+    Sep: 8,
+    Oct: 9,
+    Nov: 10,
+    Dec: 11
+  };
+
+  const month = monthMap[parts[1]];
+  const day = Number(parts[2]);
+
+  if (month === undefined || Number.isNaN(day)) {
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  return new Date(Date.UTC(2026, month, day)).getTime();
+}
+
 // ===============================
 // Render matches
 // ===============================
@@ -414,7 +471,24 @@ function renderMatches() {
 
   container.innerHTML = "";
 
-  let matches = [...allMatches];
+  let matches = [...allMatches].sort((a, b) => {
+    const dateA = a.dateObj instanceof Date && !isNaN(a.dateObj)
+      ? a.dateObj.getTime()
+      : Number.MAX_SAFE_INTEGER;
+
+    const dateB = b.dateObj instanceof Date && !isNaN(b.dateObj)
+      ? b.dateObj.getTime()
+      : Number.MAX_SAFE_INTEGER;
+
+    if (dateA !== dateB) {
+      return dateA - dateB;
+    }
+
+    const idA = Number(String(a.id).replace(/\D/g, "")) || 0;
+    const idB = Number(String(b.id).replace(/\D/g, "")) || 0;
+
+    return idA - idB;
+  });
 
   if (currentFilter === "played") {
     matches = matches.filter(match => match.played);
@@ -632,7 +706,7 @@ function renderLeaderboard() {
   const names = Object.keys(predictions);
 
   if (names.length === 0) {
-    leaderboard.innerHTML = "<p>No predictions saved yet.</p>";
+    leaderboard.innerHTML = "<p>No predictions yet.</p>";
     return;
   }
 
