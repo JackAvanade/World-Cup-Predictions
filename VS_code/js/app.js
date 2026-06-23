@@ -1,7 +1,6 @@
-// ✅ Correct blob URL (NO <a href> — just plain string)
+// ✅ 1. constants at the top
 const BASE_URL = "https://worldcuppredictions.blob.core.windows.net/worldcuppredictions/";
 
-// ✅ Files you want to load
 const FILES = [
   "cup_finals.txt",
   "cup.txt",
@@ -9,51 +8,62 @@ const FILES = [
   "quali_playoffs.txt"
 ];
 
-// ✅ Load files from blob storage
-async function loadAllFiles() {
-  const data = {};
+// ✅ 2. functions
+async function loadData() {
+  const response = await fetch(BASE_URL + "cup_finals.txt?cache=" + Date.now());
+  const text = await response.text();
 
-  for (const file of FILES) {
-    try {
-      // cache-busting added so it always updates
-      const response = await fetch(BASE_URL + file + "?cache=" + Date.now());
-
-      if (!response.ok) {
-        throw new Error(`Failed to load ${file}`);
-      }
-
-      data[file] = await response.text();
-
-    } catch (error) {
-      console.error(error);
-      data[file] = "Error loading file.";
-    }
-  }
-
-  return data;
+  return parseMatches(text);  // ✅ using parser
 }
 
-// ✅ Display data
 async function displayData() {
   const container = document.getElementById("matches-list");
 
   container.innerHTML = "Loading...";
 
-  const data = await loadAllFiles();
+  const matches = await loadData();
 
   container.innerHTML = "";
 
-  for (const file in data) {
-    const section = document.createElement("div");
+  matches.forEach(match => {
+    const div = document.createElement("div");
 
-    section.innerHTML = `
-      <h4>${file}</h4>
-      <pre>${data[file]}</pre>
+    div.style.padding = "10px";
+    div.style.marginBottom = "8px";
+    div.style.borderRadius = "6px";
+
+    div.style.background = match.played ? "#d4edda" : "#f8d7da";
+
+    div.innerHTML = `
+      <strong>${match.text}</strong><br>
+      <small>${match.location}</small>
     `;
 
-    container.appendChild(section);
-  }
+    container.appendChild(div);
+  });
 }
 
-// ✅ Run when page loads
+// ✅ 3. parser function (can be at bottom ✅)
+function parseMatches(text) {
+  const lines = text.split("\n");
+
+  const matches = [];
+
+  lines.forEach(line => {
+    if (line.includes("@") && line.includes("v")) {
+      const parts = line.split("@");
+
+      matches.push({
+        text: parts[0].trim(),
+        location: parts[1].trim(),
+        played: /\d+-\d+/.test(line)
+      });
+    }
+  });
+
+  return matches;
+}
+
+// ✅ 4. run app
 window.onload = displayData;
+``
