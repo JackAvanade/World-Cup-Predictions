@@ -6,56 +6,6 @@
   <title>World Cup Predictor</title>
 
   <link rel="stylesheet" href="css/styles.css">
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #1c6e2c;
-      color: #222;
-    }
-
-    .site-header {
-      text-align: center;
-      padding: 20px;
-      background: #126122;
-      color: #f4e2b1;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 30px auto;
-      padding: 0 15px;
-    }
-
-    .card {
-      background: #eee;
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-    }
-
-    #matches-list .match-card {
-      margin-bottom: 10px;
-    }
-
-    button {
-      padding: 8px 12px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-    }
-
-    button:hover {
-      opacity: 0.9;
-    }
-
-    .site-footer {
-      text-align: center;
-      padding: 15px;
-      color: #eee;
-    }
-  </style>
 </head>
 
 <body>
@@ -79,14 +29,14 @@
       </div>
 
       <!-- ✅ Filters -->
-      <div style="margin-bottom:15px;">
+      <div style="margin-bottom:15px; display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
         <button id="filter-all">All</button>
         <button id="filter-played">Played</button>
         <button id="filter-unplayed">Unplayed</button>
-
         <select id="game-day-select" style="margin-left:10px;">
           <option value="">All days</option>
         </select>
+        <button id="save-results" style="margin-left:auto;">Save Results</button>
       </div>
 
       <!-- ✅ Matches go here -->
