@@ -32,5 +32,4 @@ jobs:
           source_dir: ./worldcup/2026--usa
           container_name: worldcuppredictions
           connection_string: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
-          overwrite: 'true'
           sync: 'true'
