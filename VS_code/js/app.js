@@ -471,6 +471,7 @@ function renderMatches() {
 
   container.innerHTML = "";
 
+  // ✅ SORT MATCHES SAFELY
   let matches = [...allMatches].sort((a, b) => {
     const dateA = a.dateObj instanceof Date && !isNaN(a.dateObj)
       ? a.dateObj.getTime()
@@ -480,16 +481,10 @@ function renderMatches() {
       ? b.dateObj.getTime()
       : Number.MAX_SAFE_INTEGER;
 
-    if (dateA !== dateB) {
-      return dateA - dateB;
-    }
-
-    const idA = Number(String(a.id).replace(/\D/g, "")) || 0;
-    const idB = Number(String(b.id).replace(/\D/g, "")) || 0;
-
-    return idA - idB;
+    return dateA - dateB;
   });
 
+  // ✅ APPLY FILTERS
   if (currentFilter === "played") {
     matches = matches.filter(match => match.played);
   }
@@ -507,44 +502,43 @@ function renderMatches() {
     return;
   }
 
+  // ✅ NEW LAYOUT (WIDE + CLEAN)
   matches.forEach(match => {
     const savedPrediction = getPredictionForMatch(match.id);
 
     const card = document.createElement("div");
-    card.className = "match-card";
 
-    card.style.padding = "12px";
-    card.style.marginBottom = "10px";
+    card.style.padding = "16px";
+    card.style.marginBottom = "12px";
     card.style.borderRadius = "8px";
     card.style.border = "1px solid #ddd";
     card.style.background = match.played ? "#e6f4ea" : "#fff7e6";
+    card.style.width = "100%";
 
     const timeText = match.time
       ? `${match.time} UTC${match.utcOffset >= 0 ? "+" + match.utcOffset : match.utcOffset}`
       : "";
 
-    const resultText = match.score
-      ? `<div style="font-size:13px;color:#237a3b;margin-bottom:8px;">Result: ${match.homeTeam} ${match.score} ${match.awayTeam}</div>`
-      : "";
-
     card.innerHTML = `
-      <div style="font-size:12px;color:#666;margin-bottom:4px;">
-        ${match.stage} • ${match.day} • ${timeText}
-      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
 
-      <div style="font-weight:700;margin-bottom:6px;">
-        Match ${match.id}: ${match.homeTeam} v ${match.awayTeam}
-      </div>
+        <!-- LEFT SIDE -->
+        <div style="flex:1;min-width:250px;">
+          <div style="font-size:12px;color:#666;">
+            ${match.stage} • ${match.day}
+          </div>
 
-      ${resultText}
+          <div style="font-size:18px;font-weight:700;margin:5px 0;">
+            ${match.homeTeam} vs ${match.awayTeam}
+          </div>
 
-      <div style="font-size:13px;color:#555;margin-bottom:8px;">
-        Location: ${match.location}
-      </div>
+          <div style="font-size:12px;color:#666;">
+            ${timeText} • ${match.location}
+          </div>
+        </div>
 
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <label>
-          ${match.homeTeam}
+        <!-- RIGHT SIDE (INPUTS) -->
+        <div style="display:flex;align-items:center;gap:6px;">
           <input
             type="number"
             min="0"
@@ -553,13 +547,11 @@ function renderMatches() {
             data-side="home"
             value="${savedPrediction && savedPrediction.home ? savedPrediction.home : ""}"
             ${match.played ? "disabled" : ""}
-            style="width:60px;padding:6px;margin-left:4px;"
+            style="width:50px;padding:6px;text-align:center;"
           />
-        </label>
 
-        <span>-</span>
+          <span>-</span>
 
-        <label>
           <input
             type="number"
             min="0"
@@ -568,21 +560,17 @@ function renderMatches() {
             data-side="away"
             value="${savedPrediction && savedPrediction.away ? savedPrediction.away : ""}"
             ${match.played ? "disabled" : ""}
-            style="width:60px;padding:6px;margin-right:4px;"
+            style="width:50px;padding:6px;text-align:center;"
           />
-          ${match.awayTeam}
-        </label>
+        </div>
 
-        <span style="font-size:12px;color:${match.played ? "#237a3b" : "#b56b00"};">
-          ${match.played ? "Played / started" : "Unplayed"}
-        </span>
       </div>
     `;
 
     container.appendChild(card);
   });
 }
-
+``
 // ===============================
 // Setup buttons
 // ===============================
