@@ -1,92 +1,203 @@
 // ===============================
-// World Cup Predictor - FULL BUILD
+// World Cup Predictor - app.js
 // ===============================
 
+// Azure Blob Storage base URL
 const BASE_URL = "https://worldcuppredictions.blob.core.windows.net/worldcuppredictions/";
 
+// Files loaded from Azure Blob
+const DATA_FILES = [
+  {
+    file: "cup.txt",
+    label: "Group Stage"
+  },
+  {
+    file: "cup_finals.txt",
+    label: "Knockout Stage"
+  }
+];
+
+// App state
 let allMatches = [];
 let currentFilter = "all";
 let currentDay = "";
-let predictions = loadPredictions();
 
 // ===============================
-// INIT
+// Start app
 // ===============================
-window.addEventListener("DOMContentLoaded", async () => {
+window.addEventListener("DOMContentLoaded", initApp);
+
+async function initApp() {
   setupButtons();
   await loadMatches();
-  sortMatches();
+  sortAllMatches();
   populateGameDays();
   renderMatches();
   renderLeaderboard();
-});
+}
 
 // ===============================
-// LOAD DATA
+// Load match files from Azure Blob
 // ===============================
 async function loadMatches() {
-  const container = document.getElementById("matches-list");
-  container.innerHTML = "Loading matches...";
+  const matchesList = document.getElementById("matches-list");
+
+  if (matchesList) {
+    matchesList.innerHTML = "Loading matches...";
+  }
 
   try {
-    const [cupRes, finalsRes] = await Promise.all([
-      fetch(BASE_URL + "cup.txt?cache=" + Date.now()),
-      fetch(BASE_URL + "cup_finals.txt?cache=" + Date.now())
-    ]);
+    const loadedFiles = await Promise.all(
+      DATA_FILES.map(async item => {
+        const response = await fetch(BASE_URL + item.file + "?cache=" + Date.now());
 
-    const cupText = await cupRes.text();
-    const finalsText = await finalsRes.text();
+        if (!response.ok) {
+          throw new Error(`Could not load ${item.file}`);
+        }
 
-    const groupMatches = parseMatches(cupText, "Group Stage");
-    const knockoutMatches = parseMatches(finalsText, "Knockout");
+        const text = await response.text();
 
-    allMatches = [...groupMatches, ...knockoutMatches];
+        return {
+          label: item.label,
+          text
+        };
+      })
+    );
 
-  } catch (err) {
-    console.error(err);
-    container.innerHTML = "Error loading matches";
+    allMatches = [];
+
+    loadedFiles.forEach(file => {
+      const matches = parseMatches(file.text, file.label);
+      allMatches = allMatches.concat(matches);
+      console.log(`${file.label} matches loaded:`, matches.length);
+    });
+
+    console.log("Total matches loaded:", allMatches.length);
+
+  } catch (error) {
+    console.error(error);
+
+    if (matchesList) {
+      matchesList.innerHTML = `
+        <p style="color:red;">
+          Error loading match data. Open the browser console with F12 to see the exact issue.
+        </p>
+      `;
+    }
   }
 }
 
 // ===============================
-// SORT MATCHES
+// Sort matches chronologically
 // ===============================
-function sortMatches() {
+function sortAllMatches() {
   allMatches.sort((a, b) => {
-    const t1 = a.dateObj ? a.dateObj.getTime() : Infinity;
-    const t2 = b.dateObj ? b.dateObj.getTime() : Infinity;
-    return t1 - t2;
+    const dateA = a.dateObj instanceof Date && !isNaN(a.dateObj) ? a.dateObj.getTime() : Number.MAX_SAFE_INTEGER;
+    const dateB = b.dateObj instanceof Date && !isNaN(b.dateObj) ? b.dateObj.getTime() : Number.MAX_SAFE_INTEGER;
+
+    if (dateA !== dateB) {
+      return dateA - dateB;
+    }
+
+    const idA = Number(String(a.id).replace(/\D/g, "")) || 0;
+    const idB = Number(String(b.id).replace(/\D/g, "")) || 0;
+
+    return idA - idB;
   });
 }
 
 // ===============================
-// PARSE MATCHES
+// Parse cup.txt and cup_finals.txt
 // ===============================
 function parseMatches(text, defaultStage) {
   const lines = text.split("\n");
 
-  let stage = defaultStage;
-  let day = "";
-
   const matches = [];
 
-  lines.forEach(line => {
-    const clean = line.trim();
-    if (!clean) return;
+  let currentStage = defaultStage;
+  let currentDayLabel = "";
+  let fallbackMatchNumber = 1;
 
-    const d = clean.match(/(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\s+(\w+)\s+(\d{1,2})/i);
-    if (d) {
-      day = `${d[1]} ${d[2].substring(0,3)} ${d[3]}`;
+  lines.forEach(line => {
+    let cleanLine = line.trim();
+
+    if (!cleanLine) return;
+
+    cleanLine = cleanLine
+      .replace(/^ï»¿/g, "")
+      .replace(/^â.=*/g, "")
+      .trim();
+
+    // Detect dates anywhere in the line.
+    // Examples:
+    // Thu Jun 11
+    // Thu June 11
+    // ▪ Group A Thu June 11
+    // Matchday 1 | Thu Jun 11
+    const detectedDay = extractDayLabel(cleanLine);
+
+    if (detectedDay) {
+      currentDayLabel = detectedDay;
     }
 
-    if (clean.startsWith("=")) {
-      stage = clean.replace(/=/g, "").trim();
+    // Detect group list lines:
+    // Group A | Mexico South Africa South Korea Czech Republic
+    const groupListMatch = cleanLine.match(/^Group\s+([A-Z])\s*\|/i);
+
+    if (groupListMatch) {
+      currentStage = `Group ${groupListMatch[1].toUpperCase()}`;
       return;
     }
 
-    if (clean.includes("@") && (clean.includes(" v ") || /\d-\d/.test(clean))) {
-      const match = parseMatch(clean, day, stage);
-      if (match) matches.push(match);
+    // Detect bullet group date lines:
+    // ▪ Group A Thu June 11
+    const bulletGroupMatch = cleanLine.match(/^▪?\s*Group\s+([A-Z])/i);
+
+    if (bulletGroupMatch && detectedDay) {
+      currentStage = `Group ${bulletGroupMatch[1].toUpperCase()}`;
+      return;
+    }
+
+    // Detect headings:
+    // = World Cup 2026
+    // = Round of 32
+    // = Final
+    if (cleanLine.startsWith("=")) {
+      const heading = cleanLine.replace(/=/g, "").trim();
+
+      if (heading) {
+        currentStage = heading;
+      }
+
+      return;
+    }
+
+    // Detect plain knockout headings
+    if (
+      /^Round of/i.test(cleanLine) ||
+      /^Quarter-final/i.test(cleanLine) ||
+      /^Semi-final/i.test(cleanLine) ||
+      /^Final/i.test(cleanLine) ||
+      /^Match for third place/i.test(cleanLine)
+    ) {
+      currentStage = cleanLine;
+      return;
+    }
+
+    // Match lines normally contain:
+    // time + teams/result + @ location
+    if (cleanLine.includes("@") && /\d{1,2}:\d{2}\s+UTC[+-]\d+/i.test(cleanLine)) {
+      const match = parseMatchLine(
+        cleanLine,
+        currentDayLabel,
+        currentStage,
+        fallbackMatchNumber
+      );
+
+      if (match) {
+        matches.push(match);
+        fallbackMatchNumber++;
+      }
     }
   });
 
@@ -94,120 +205,330 @@ function parseMatches(text, defaultStage) {
 }
 
 // ===============================
-// PARSE SINGLE MATCH
+// Extract day label from text
 // ===============================
-function parseMatch(line, day, stage) {
-  const parts = line.split("@");
-  if (parts.length < 2) return null;
+function extractDayLabel(line) {
+  const dayNames = "(Sun|Mon|Tue|Wed|Thu|Fri|Sat)";
+  const monthNames = "(Jan|January|Feb|February|Mar|March|Apr|April|May|Jun|June|Jul|July|Aug|August|Sep|September|Oct|October|Nov|November|Dec|December)";
 
-  const left = parts[0].trim();
-  const location = parts[1].trim();
+  // Example:
+  // Thu Jun 11
+  // Thu June 11
+  // Group A Thu June 11
+  let match = line.match(new RegExp(`${dayNames}\\s+${monthNames}\\s+(\\d{1,2})`, "i"));
 
-  const timeMatch = left.match(/(\d{1,2}:\d{2})\s+UTC([+-]\d+)/);
+  if (match) {
+    return `${normaliseDay(match[1])} ${normaliseMonth(match[2])} ${Number(match[3])}`;
+  }
+
+  // Example:
+  // Thu 11 Jun
+  // Thu 11 June
+  match = line.match(new RegExp(`${dayNames}\\s+(\\d{1,2})\\s+${monthNames}`, "i"));
+
+  if (match) {
+    return `${normaliseDay(match[1])} ${normaliseMonth(match[3])} ${Number(match[2])}`;
+  }
+
+  return "";
+}
+
+function normaliseDay(day) {
+  return day.slice(0, 1).toUpperCase() + day.slice(1, 3).toLowerCase();
+}
+
+function normaliseMonth(month) {
+  const map = {
+    january: "Jan",
+    jan: "Jan",
+    february: "Feb",
+    feb: "Feb",
+    march: "Mar",
+    mar: "Mar",
+    april: "Apr",
+    apr: "Apr",
+    may: "May",
+    june: "Jun",
+    jun: "Jun",
+    july: "Jul",
+    jul: "Jul",
+    august: "Aug",
+    aug: "Aug",
+    september: "Sep",
+    sep: "Sep",
+    october: "Oct",
+    oct: "Oct",
+    november: "Nov",
+    nov: "Nov",
+    december: "Dec",
+    dec: "Dec"
+  };
+
+  return map[month.toLowerCase()] || month;
+}
+
+// ===============================
+// Parse one match line
+// ===============================
+function parseMatchLine(line, dayLabel, stage, fallbackMatchNumber) {
+  const atParts = line.split("@");
+
+  if (atParts.length < 2) {
+    return null;
+  }
+
+  const leftSide = atParts[0].trim();
+  const location = atParts.slice(1).join("@").trim();
+
+  const matchNumberMatch = leftSide.match(/\((\d+)\)/);
+
+  const matchNumber = matchNumberMatch
+    ? matchNumberMatch[1]
+    : `${stage.replace(/\s+/g, "-")}-${fallbackMatchNumber}`;
+
+  const timeMatch = leftSide.match(/(\d{1,2}:\d{2})\s+UTC([+-]\d+)/i);
 
   let time = "";
-  let offset = 0;
-  let teams = left;
+  let utcOffset = 0;
+  let teamsText = leftSide;
 
   if (timeMatch) {
     time = timeMatch[1];
-    offset = Number(timeMatch[2]);
+    utcOffset = Number(timeMatch[2]);
 
-    teams = left
-      .replace(/(\d{1,2}:\d{2})\s+UTC([+-]\d+)/, "")
-      .replace(/\(\d+\)/, "")
+    teamsText = leftSide
+      .replace(/\((\d+)\)/, "")
+      .replace(/(\d{1,2}:\d{2})\s+UTC([+-]\d+)/i, "")
       .trim();
   }
 
-  const [home, away] = teams.split(/\s+v\s+|\s+vs\s+/i);
+  let homeTeam = "";
+  let awayTeam = "";
+  let score = "";
 
-  const dateObj = buildDate(day, time, offset);
+  // Fixture format:
+  // Team A v Team B
+  // Team A vs Team B
+  const fixtureSplit = teamsText.split(/\s+v\s+|\s+vs\s+/i);
+
+  if (fixtureSplit.length >= 2) {
+    homeTeam = fixtureSplit[0].trim();
+    awayTeam = fixtureSplit.slice(1).join(" v ").trim();
+  } else {
+    // Result format:
+    // Mexico 2-0 South Africa
+    // Mexico 2-0 (1-0) South Africa
+    const resultMatch = teamsText.match(/^(.+?)\s+(\d+\s*-\s*\d+)(?:\s+\([^)]+\))?\s+(.+)$/);
+
+    if (resultMatch) {
+      homeTeam = resultMatch[1].trim();
+      score = resultMatch[2].replace(/\s+/g, "");
+      awayTeam = resultMatch[3].trim();
+    } else {
+      return null;
+    }
+  }
+
+  const dateObj = buildMatchDate(dayLabel, time, utcOffset);
+
+  const hasScore = score !== "" || /\b\d+\s*-\s*\d+\b/.test(line);
+  const hasStarted = dateObj ? dateObj <= new Date() : false;
 
   return {
-    id: Math.random().toString(36).slice(2),
-    homeTeam: home?.trim(),
-    awayTeam: away?.trim(),
-    day,
-    stage,
+    id: matchNumber,
+    raw: line,
+    day: dayLabel || "Unknown day",
+    stage: stage || "Unknown stage",
     time,
-    utcOffset: offset,
+    utcOffset,
+    homeTeam,
+    awayTeam,
+    score,
     location,
     dateObj,
-    played: dateObj ? dateObj <= new Date() : false
+    played: hasScore || hasStarted
   };
 }
 
 // ===============================
-// BUILD DATE
+// Convert text date/time to Date
 // ===============================
-function buildDate(day, time, offset) {
-  if (!day || !time) return null;
+function buildMatchDate(dayLabel, time, utcOffset) {
+  if (!dayLabel || !time) return null;
 
-  const parts = day.split(" ");
+  const parts = dayLabel.split(" ");
 
-  const months = {
-    Jan:0, Feb:1, Mar:2, Apr:3, May:4,
-    Jun:5, Jul:6, Aug:7, Sep:8,
-    Oct:9, Nov:10, Dec:11
+  if (parts.length < 3) return null;
+
+  const monthText = parts[1];
+  const dayNumber = Number(parts[2]);
+
+  const monthMap = {
+    Jan: 0,
+    Feb: 1,
+    Mar: 2,
+    Apr: 3,
+    May: 4,
+    Jun: 5,
+    Jul: 6,
+    Aug: 7,
+    Sep: 8,
+    Oct: 9,
+    Nov: 10,
+    Dec: 11
   };
 
-  const [h,m] = time.split(":");
+  const month = monthMap[monthText];
 
-  return new Date(Date.UTC(
-    2026,
-    months[parts[1]],
-    Number(parts[2]),
-    Number(h) - offset,
-    Number(m)
-  ));
+  if (month === undefined) return null;
+
+  const [hourText, minuteText] = time.split(":");
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+
+  const year = 2026;
+
+  // Example:
+  // 12:00 UTC-7 means 19:00 UTC
+  const utcHour = hour - utcOffset;
+
+  return new Date(Date.UTC(year, month, dayNumber, utcHour, minute));
 }
 
 // ===============================
-// UI - MATCH RENDER
+// Populate game day dropdown
+// ===============================
+function populateGameDays() {
+  const select = document.getElementById("game-day-select");
+
+  if (!select) return;
+
+  const days = [...new Set(allMatches.map(match => match.day))]
+    .sort((a, b) => {
+      const dateA = getDaySortDate(a);
+      const dateB = getDaySortDate(b);
+      return dateA - dateB;
+    });
+
+  select.innerHTML = `<option value="">All days</option>`;
+
+  days.forEach(day => {
+    const option = document.createElement("option");
+    option.value = day;
+    option.textContent = day;
+    select.appendChild(option);
+  });
+
+  select.addEventListener("change", () => {
+    currentDay = select.value;
+    renderMatches();
+  });
+}
+
+function getDaySortDate(dayLabel) {
+  if (!dayLabel || dayLabel === "Unknown day") {
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  const parts = dayLabel.split(" ");
+
+  if (parts.length < 3) {
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  const monthMap = {
+    Jan: 0,
+    Feb: 1,
+    Mar: 2,
+    Apr: 3,
+    May: 4,
+    Jun: 5,
+    Jul: 6,
+    Aug: 7,
+    Sep: 8,
+    Oct: 9,
+    Nov: 10,
+    Dec: 11
+  };
+
+  const month = monthMap[parts[1]];
+  const day = Number(parts[2]);
+
+  if (month === undefined || Number.isNaN(day)) {
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  return new Date(Date.UTC(2026, month, day)).getTime();
+}
+
+// ===============================
+// Render matches
 // ===============================
 function renderMatches() {
   const container = document.getElementById("matches-list");
+
+  if (!container) return;
+
   container.innerHTML = "";
 
-  let matches = [...allMatches];
+  // ✅ SORT MATCHES SAFELY
+  let matches = [...allMatches].sort((a, b) => {
+    const dateA = a.dateObj instanceof Date && !isNaN(a.dateObj)
+      ? a.dateObj.getTime()
+      : Number.MAX_SAFE_INTEGER;
 
-  // Filters
+    const dateB = b.dateObj instanceof Date && !isNaN(b.dateObj)
+      ? b.dateObj.getTime()
+      : Number.MAX_SAFE_INTEGER;
+
+    return dateA - dateB;
+  });
+
+  // ✅ APPLY FILTERS
   if (currentFilter === "played") {
-    matches = matches.filter(m => m.played);
-  } else if (currentFilter === "unplayed") {
-    matches = matches.filter(m => !m.played);
+    matches = matches.filter(match => match.played);
+  }
+
+  if (currentFilter === "unplayed") {
+    matches = matches.filter(match => !match.played);
   }
 
   if (currentDay) {
-    matches = matches.filter(m => m.day === currentDay);
+    matches = matches.filter(match => match.day === currentDay);
   }
 
+  if (matches.length === 0) {
+    container.innerHTML = "<p>No matches found for this filter.</p>";
+    return;
+  }
+
+  // ✅ NEW LAYOUT (WIDE + CLEAN)
   matches.forEach(match => {
+    const savedPrediction = getPredictionForMatch(match.id);
+
     const card = document.createElement("div");
 
     card.style.padding = "16px";
-    card.style.marginBottom = "10px";
-    card.style.border = "1px solid #ddd";
+    card.style.marginBottom = "12px";
     card.style.borderRadius = "8px";
+    card.style.border = "1px solid #ddd";
     card.style.background = match.played ? "#e6f4ea" : "#fff7e6";
+    card.style.width = "100%";
 
     const timeText = match.time
-      ? `${match.time} UTC${match.utcOffset >= 0 ? "+"+match.utcOffset : match.utcOffset}`
+      ? `${match.time} UTC${match.utcOffset >= 0 ? "+" + match.utcOffset : match.utcOffset}`
       : "";
 
-    const user = document.getElementById("predictor-name").value;
-
-    const saved = predictions[user]?.[match.id] || {};
-
     card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:20px;">
-        
-        <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+
+        <!-- LEFT SIDE -->
+        <div style="flex:1;min-width:250px;">
           <div style="font-size:12px;color:#666;">
             ${match.stage} • ${match.day}
           </div>
 
-          <div style="font-size:20px;font-weight:bold;">
+          <div style="font-size:18px;font-weight:700;margin:5px 0;">
             ${match.homeTeam} vs ${match.awayTeam}
           </div>
 
@@ -216,10 +537,31 @@ function renderMatches() {
           </div>
         </div>
 
-        <div style="display:flex;gap:6px;">
-          <input value="${saved.home || ""}" type="number" data-id="${match.id}" data-side="home" style="width:50px;">
+        <!-- RIGHT SIDE (INPUTS) -->
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input
+            type="number"
+            min="0"
+            class="prediction-input"
+            data-match-id="${match.id}"
+            data-side="home"
+            value="${savedPrediction && savedPrediction.home ? savedPrediction.home : ""}"
+            ${match.played ? "disabled" : ""}
+            style="width:50px;padding:6px;text-align:center;"
+          />
+
           <span>-</span>
-          <input value="${saved.away || ""}" type="number" data-id="${match.id}" data-side="away" style="width:50px;">
+
+          <input
+            type="number"
+            min="0"
+            class="prediction-input"
+            data-match-id="${match.id}"
+            data-side="away"
+            value="${savedPrediction && savedPrediction.away ? savedPrediction.away : ""}"
+            ${match.played ? "disabled" : ""}
+            style="width:50px;padding:6px;text-align:center;"
+          />
         </div>
 
       </div>
@@ -228,75 +570,148 @@ function renderMatches() {
     container.appendChild(card);
   });
 }
-
+``
 // ===============================
-// BUTTONS
+// Setup buttons
 // ===============================
 function setupButtons() {
-  document.getElementById("filter-all").onclick = () => {
-    currentFilter = "all";
-    renderMatches();
-  };
+  const allButton = document.getElementById("filter-all");
+  const playedButton = document.getElementById("filter-played");
+  const unplayedButton = document.getElementById("filter-unplayed");
+  const savePredictionsButton = document.getElementById("save-predictions");
+  const saveResultsButton = document.getElementById("save-results");
 
-  document.getElementById("filter-played").onclick = () => {
-    currentFilter = "played";
-    renderMatches();
-  };
+  if (allButton) {
+    allButton.addEventListener("click", () => {
+      currentFilter = "all";
+      renderMatches();
+    });
+  }
 
-  document.getElementById("filter-unplayed").onclick = () => {
-    currentFilter = "unplayed";
-    renderMatches();
-  };
+  if (playedButton) {
+    playedButton.addEventListener("click", () => {
+      currentFilter = "played";
+      renderMatches();
+    });
+  }
 
-  document.getElementById("save-predictions").onclick = savePredictions;
+  if (unplayedButton) {
+    unplayedButton.addEventListener("click", () => {
+      currentFilter = "unplayed";
+      renderMatches();
+    });
+  }
+
+  if (savePredictionsButton) {
+    savePredictionsButton.addEventListener("click", savePredictions);
+  }
+
+  if (saveResultsButton) {
+    saveResultsButton.addEventListener("click", savePredictions);
+  }
 }
 
 // ===============================
-// PREDICTIONS
+// Save predictions
 // ===============================
 function savePredictions() {
-  const name = document.getElementById("predictor-name").value;
-  if (!name) return alert("Enter a name");
+  const nameInput = document.getElementById("predictor-name");
+  const predictorName = nameInput ? nameInput.value.trim() : "";
 
-  if (!predictions[name]) predictions[name] = {};
-
-  document.querySelectorAll("input[type=number]").forEach(input => {
-    const id = input.dataset.id;
-    const side = input.dataset.side;
-
-    if (!predictions[name][id]) predictions[name][id] = {};
-
-    predictions[name][id][side] = input.value;
-  });
-
-  localStorage.setItem("predictions", JSON.stringify(predictions));
-  renderLeaderboard();
-}
-
-function loadPredictions() {
-  return JSON.parse(localStorage.getItem("predictions") || "{}");
-}
-
-// ===============================
-// LEADERBOARD
-// ===============================
-function renderLeaderboard() {
-  const box = document.getElementById("leaderboard-list");
-
-  const names = Object.keys(predictions);
-
-  if (!names.length) {
-    box.innerHTML = "No predictions yet.";
+  if (!predictorName) {
+    alert("Please enter your predictor name first.");
     return;
   }
 
-  box.innerHTML = names.map(n => {
-    const count = Object.keys(predictions[n]).length;
-    return `<div><b>${n}</b> — ${count} predictions</div>`;
-  }).join("");
+  const inputs = document.querySelectorAll(".prediction-input");
+
+  const predictions = getAllPredictions();
+
+  if (!predictions[predictorName]) {
+    predictions[predictorName] = {};
+  }
+
+  inputs.forEach(input => {
+    const matchId = input.dataset.matchId;
+    const side = input.dataset.side;
+    const value = input.value;
+
+    if (!predictions[predictorName][matchId]) {
+      predictions[predictorName][matchId] = {};
+    }
+
+    predictions[predictorName][matchId][side] = value;
+  });
+
+  localStorage.setItem("worldCupPredictions", JSON.stringify(predictions));
+
+  alert("Predictions saved.");
+  renderLeaderboard();
 }
 
 // ===============================
-// DROPDOWN
+// Get saved prediction for current user
 // ===============================
-function populateGameDays() {
+function getPredictionForMatch(matchId) {
+  const nameInput = document.getElementById("predictor-name");
+  const predictorName = nameInput ? nameInput.value.trim() : "";
+
+  if (!predictorName) return null;
+
+  const predictions = getAllPredictions();
+
+  if (!predictions[predictorName]) return null;
+
+  return predictions[predictorName][matchId] || null;
+}
+
+// ===============================
+// Get all saved predictions
+// ===============================
+function getAllPredictions() {
+  const saved = localStorage.getItem("worldCupPredictions");
+
+  if (!saved) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(saved);
+  } catch {
+    return {};
+  }
+}
+
+// ===============================
+// Leaderboard
+// ===============================
+function renderLeaderboard() {
+  const leaderboard = document.getElementById("leaderboard-list");
+
+  if (!leaderboard) return;
+
+  const predictions = getAllPredictions();
+  const names = Object.keys(predictions);
+
+  if (names.length === 0) {
+    leaderboard.innerHTML = "<p>No predictions yet.</p>";
+    return;
+  }
+
+  leaderboard.innerHTML = "";
+
+  names.forEach(name => {
+    const matchCount = Object.keys(predictions[name]).length;
+
+    const row = document.createElement("div");
+    row.style.padding = "8px";
+    row.style.borderBottom = "1px solid #ddd";
+
+    row.innerHTML = `
+      <strong>${name}</strong>
+      <span style="color:#666;"> — ${matchCount} prediction(s) saved</span>
+    `;
+
+    leaderboard.appendChild(row);
+  });
+}
