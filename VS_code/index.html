@@ -1,54 +1,62 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>World Cup Predictor</title>
-  <link rel="stylesheet" href="css/styles.css">
-</head>
-<body>
-  <header class="site-header">
-    <h1>World Cup Predictor</h1>
-    <h2 class="tagline">Make your predictions!</h2>
-  </header>
+// ✅ Your Azure Blob base URL
+const BASE_URL = "https://worldcuppredictions.blob.core.windows.net/worldcuppredictions/";
 
-  <main class="container">
-    <section id="matches" class="card">
-      <h3>Matches</h3>
-      <div style="margin-bottom:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <label for="predictor-name" style="font-weight:600;">Predictor name:</label>
-        <input id="predictor-name" placeholder="Enter your name" style="flex:1;min-width:180px;padding:8px;border:1px solid #ddd;border-radius:6px;" />
-        <button id="save-predictions">Save Predictions</button>
-      </div>
-      <div class="match-controls">
-        <button id="filter-all">All</button>
-        <button id="filter-played">Played</button>
-        <button id="filter-unplayed">Unplayed</button>
-        <select id="game-day-select" aria-label="Select game day">
-          <option value="">Select a game day...</option>
-        </select>
-      </div>
-      <div id="matches-list"></div>
-      <div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <button id="save-results">Save Results</button>
-        <div style="color:#666;font-size:12px;max-width:480px;">Fill the predictor name before entering your score predictions so they are saved properly.</div>
-      </div>
-      <div style="margin-top:12px;border-top:1px dashed #ddd;padding-top:10px">
-        <strong>Importing</strong>
-        <div style="margin-top:6px;color:#666;font-size:12px">Games and predictor prediction files are imported automatically in the background from data/imports/ when available.</div>
-      </div>
-    </section>
+// ✅ List of files in your blob container
+const FILES = [
+  "cup_finals.txt",
+  "teams.txt",
+  "matches.txt"
+];
 
-    <section id="leaderboard" class="card">
-      <h3>Leaderboard</h3>
-      <div id="leaderboard-list"></div>
-    </section>
-  </main>
+// ✅ Load all files from Azure Blob
+async function loadAllFiles() {
+  const data = {};
 
-  <footer class="site-footer">
-    <p>Designed with football spirit.</p>
-  </footer>
+  for (const file of FILES) {
+    try {
+      const response = await fetch(BASE_URL + file);
 
-  <script src="js/app.js" type="module"></script>
-</body>
-</html>
+      if (!response.ok) {
+        throw new Error(`Failed to load ${file}`);
+      }
+
+      const text = await response.text();
+      data[file] = text;
+
+    } catch (error) {
+      console.error(error);
+      data[file] = "Error loading file.";
+    }
+  }
+
+  return data;
+}
+
+// ✅ Display files on page
+async function displayData() {
+  const container = document.getElementById("matches-list");
+
+  container.innerHTML = "Loading...";
+
+  const data = await loadAllFiles();
+
+  container.innerHTML = "";
+
+  for (const file in data) {
+    const section = document.createElement("div");
+
+    section.style.marginBottom = "20px";
+
+    section.innerHTML = `
+      <h4>${file}</h4>
+      <pre style="background:#f4f4f4;padding:10px;border-radius:6px;">
+${data[file]}
+      </pre>
+    `;
+
+    container.appendChild(section);
+  }
+}
+
+// ✅ Run on page load
+window.onload = displayData;
