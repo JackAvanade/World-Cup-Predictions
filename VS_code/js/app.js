@@ -19,11 +19,12 @@ const DATA_FILES = [
 
 // ✅ App state
 let matches = [...allMatches].sort((a, b) => {
-  if (!a.dateObj && !b.dateObj) return 0;
-  if (!a.dateObj) return 1;
-  if (!b.dateObj) return -1;
-  return a.dateObj - b.dateObj;
+  const dateA = a.dateObj ? a.dateObj.getTime() : Infinity;
+  const dateB = b.dateObj ? b.dateObj.getTime() : Infinity;
+
+  return dateA - dateB;
 });
+
 let currentFilter = "all";
 let currentDay = "";
 
