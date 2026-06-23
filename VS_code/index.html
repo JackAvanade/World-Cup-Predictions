@@ -1,62 +1,31 @@
-// ✅ Your Azure Blob base URL
-const BASE_URL = "https://worldcuppredictions.blob.core.windows.net/worldcuppredictions/";
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>World Cup Predictor</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
 
-// ✅ List of files in your blob container
-const FILES = [
-  "cup_finals.txt",
-  "teams.txt",
-  "matches.txt"
-];
+  <header class="site-header">
+    <h1>World Cup Predictor</h1>
+    <h2 class="tagline">Make your predictions!</h2>
+  </header>
 
-// ✅ Load all files from Azure Blob
-async function loadAllFiles() {
-  const data = {};
+  <main class="container">
+    <section id="matches" class="card">
+      <h3>Matches</h3>
+      <div id="matches-list">Loading data...</div>
+    </section>
+  </main>
 
-  for (const file of FILES) {
-    try {
-      const response = await fetch(BASE_URL + file);
+  <footer class="site-footer">
+    <p>Designed with football spirit.</p>
+  </footer>
 
-      if (!response.ok) {
-        throw new Error(`Failed to load ${file}`);
-      }
+  <!-- ✅ THIS is the only JS line in HTML -->
+  <script src="js/app.js" type="module"></script>
 
-      const text = await response.text();
-      data[file] = text;
-
-    } catch (error) {
-      console.error(error);
-      data[file] = "Error loading file.";
-    }
-  }
-
-  return data;
-}
-
-// ✅ Display files on page
-async function displayData() {
-  const container = document.getElementById("matches-list");
-
-  container.innerHTML = "Loading...";
-
-  const data = await loadAllFiles();
-
-  container.innerHTML = "";
-
-  for (const file in data) {
-    const section = document.createElement("div");
-
-    section.style.marginBottom = "20px";
-
-    section.innerHTML = `
-      <h4>${file}</h4>
-      <pre style="background:#f4f4f4;padding:10px;border-radius:6px;">
-${data[file]}
-      </pre>
-    `;
-
-    container.appendChild(section);
-  }
-}
-
-// ✅ Run on page load
-window.onload = displayData;
+</body>
+</html>
