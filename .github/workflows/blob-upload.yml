@@ -1,0 +1,23 @@
+name: Sync external dataset to Azure
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download dataset from GitHub
+        run: |
+          curl -L https://raw.githubusercontent.com/openfootball/worldcup/main/2022/worldcup.json -o data.json
+
+      - name: Upload to Azure Blob
+        uses: bacongobbler/azure-blob-storage-upload@main
+        with:
+          source_dir: .
+          container_name: dataset
+          connection_string: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          overwrite: 'true'
