@@ -4,28 +4,112 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>World Cup Predictor</title>
+
   <link rel="stylesheet" href="css/styles.css">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #1c6e2c;
+      color: #222;
+    }
+
+    .site-header {
+      text-align: center;
+      padding: 20px;
+      background: #126122;
+      color: #f4e2b1;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 0 15px;
+    }
+
+    .card {
+      background: #eee;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    #matches-list .match-card {
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .site-footer {
+      text-align: center;
+      padding: 15px;
+      color: #eee;
+    }
+  </style>
 </head>
+
 <body>
 
   <header class="site-header">
-    <h1>World Cup Predictor</h1>
-    <h2 class="tagline">Make your predictions!</h2>
+    <h1>WORLD CUP PREDICTOR</h1>
+    <p>Make your predictions!</p>
   </header>
 
   <main class="container">
-    <section id="matches" class="card">
-      <h3>Matches</h3>
-      <div id="matches-list">Loading data...</div>
+
+    <!-- ✅ MATCHES -->
+    <section class="card">
+      <h2>Matches</h2>
+
+      <!-- ✅ Predictor input -->
+      <div style="margin-bottom:15px;">
+        <label><strong>Your name:</strong></label>
+        <input id="predictor-name" placeholder="Enter your name" style="padding:8px;margin-left:10px;">
+        <button id="save-predictions">Save Predictions</button>
+      </div>
+
+      <!-- ✅ Filters -->
+      <div style="margin-bottom:15px;">
+        <button id="filter-all">All</button>
+        <button id="filter-played">Played</button>
+        <button id="filter-unplayed">Unplayed</button>
+
+        <select id="game-day-select" style="margin-left:10px;">
+          <option value="">All days</option>
+        </select>
+      </div>
+
+      <!-- ✅ Matches go here -->
+      <div id="matches-list">Loading matches...</div>
+
     </section>
+
+    <!-- ✅ LEADERBOARD -->
+    <section class="card">
+      <h2>Leaderboard</h2>
+      <div id="leaderboard-list">
+        No predictions yet.
+      </div>
+    </section>
+
   </main>
 
   <footer class="site-footer">
     <p>Designed with football spirit.</p>
   </footer>
 
-  <!-- ✅ THIS is the only JS line in HTML -->
-  <script src="js/app.js" type="module"></script>
+  <!-- ✅ IMPORTANT: this links your JavaScript -->
+  <script src="js/app.js"></script>
 
 </body>
 </html>
