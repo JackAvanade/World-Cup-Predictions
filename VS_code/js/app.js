@@ -4,8 +4,9 @@ const BASE_URL = "https://worldcuppredictions.blob.core.windows.net/worldcuppred
 // ✅ Files you want to load
 const FILES = [
   "cup_finals.txt",
-  "teams.txt",
-  "matches.txt"
+  "cup.txt",
+  "cup_stadiums.csv",
+  "quali_playoffs.txt"
 ];
 
 // ✅ Load files from blob storage
