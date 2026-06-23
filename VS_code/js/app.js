@@ -9,7 +9,7 @@ const BASE_URL = "https://worldcuppredictions.blob.core.windows.net/worldcuppred
 // IMPORTANT: Replace this with your real Function URL from Azure.
 // It should look like:
 // https://your-function-app.azurewebsites.net/api/runAI?code=YOUR_FUNCTION_KEY
-const AI_FUNCTION_URL = "https://portal.azure.com/?feature.msaljs=true#view/WebsitesExtension/FunctionTabMenuBlade/~/codeTest/resourceId/%2Fsubscriptions%2F3af0f5b2-c721-42d7-96ab-0831a6f67bab%2FresourceGroups%2FRG-Hackathon-Team2%2Fproviders%2FMicrosoft.Web%2Fsites%2FWorldCupPredicition%2Ffunctions%2FrunAI";
+const AI_FUNCTION_URL = "https://worldcuppredicition-eahrg4fggbdaeffn.ukwest-01.azurewebsites.net/api/runAI";
 
 // Files loaded from Azure Blob
 const DATA_FILES = [
