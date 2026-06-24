@@ -550,12 +550,6 @@ function renderMatches() {
 
     const card = document.createElement("div");
 
-    card.style.padding = "16px";
-    card.style.marginBottom = "12px";
-    card.style.borderRadius = "8px";
-    card.style.border = "1px solid #ddd";
-    card.style.background = match.played ? "#e6f4ea" : "#fff7e6";
-    card.style.width = "100%";
 
     const timeText = match.time
       ? `${match.time} UTC${match.utcOffset >= 0 ? "+" + match.utcOffset : match.utcOffset}`
