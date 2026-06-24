@@ -555,22 +555,53 @@ function renderMatches() {
       ? `${match.time} UTC${match.utcOffset >= 0 ? "+" + match.utcOffset : match.utcOffset}`
       : "";
 
-    card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+card.classList.add("match-card");
 
-        <div style="flex:1;min-width:250px;">
-          <div style="font-size:12px;color:#666;">
-            ${escapeHtml(match.stage)} • ${escapeHtml(match.day)}
-          </div>
+card.innerHTML = `
+  <div class="match-top">
+    <span>${escapeHtml(match.stage)}</span>
+    <span>${escapeHtml(match.time)}</span>
+  </div>
 
-          <div style="font-size:18px;font-weight:700;margin:5px 0;">
-            ${escapeHtml(match.homeTeam)} vs ${escapeHtml(match.awayTeam)}
-          </div>
+  <div class="teams-display">
 
-          <div style="font-size:12px;color:#666;">
-            ${escapeHtml(timeText)} • ${escapeHtml(match.location)}
-          </div>
-        </div>
+    <div class="team">
+      <small>${escapeHtml(match.homeTeam.slice(0,3).toUpperCase())}</small>
+      <strong>${escapeHtml(match.homeTeam)}</strong>
+    </div>
+
+    <div class="vs">
+      <span>${escapeHtml(match.homeTeam.slice(0,2).toUpperCase())}</span>
+      <b>VS</b>
+      <span>${escapeHtml(match.awayTeam.slice(0,2).toUpperCase())}</span>
+    </div>
+
+    <div class="team">
+      <small>${escapeHtml(match.awayTeam.slice(0,3).toUpperCase())}</small>
+      <strong>${escapeHtml(match.awayTeam)}</strong>
+    </div>
+
+  </div>
+
+  <div class="prediction-box">
+    <span>YOUR PREDICTION</span>
+
+    <div class="prediction-inputs">
+      <input class="prediction-input" data-match-id="${match.id}" data-side="home">
+      <span>-</span>
+      <input class="prediction-input" data-match-id="${match.id}" data-side="away">
+    </div>
+  </div>
+
+  <div class="match-footer">
+    ${escapeHtml(match.location)}
+  </div>
+
+  <div class="ai-inline">
+    🤖 ${getSimpleAIPrediction(match)}
+  </div>
+`;
+
 
         <div style="display:flex;align-items:center;gap:6px;">
           <input
