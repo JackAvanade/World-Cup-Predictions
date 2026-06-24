@@ -74,12 +74,17 @@ async function loadAIPredictions() {
     const data = await response.json();
 
     aiPredictionsText = data.answer || "AI returned no prediction text.";
+    
+    saveAIPredictionsToLeaderboard(aiPredictionsText);
+    renderLeaderboard();
 
     console.log("AI predictions loaded:", aiPredictionsText);
 
   } catch (error) {
     console.error("AI prediction error:", error);
     aiPredictionsText = "AI predictions are currently unavailable.";
+  
+
   }
 }
 
