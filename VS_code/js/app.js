@@ -6,9 +6,6 @@
 const BASE_URL = "https://worldcuppredictions.blob.core.windows.net/worldcuppredictions/";
 
 // Azure Function URL for AI predictions
-// IMPORTANT: Replace this with your real Function URL from Azure.
-// It should look like:
-// https://your-function-app.azurewebsites.net/api/runAI?code=YOUR_FUNCTION_KEY
 const AI_FUNCTION_URL = "https://worldcuppredicition-eahrg4fggbdaeffn.ukwest-01.azurewebsites.net/api/runAI";
 
 // Files loaded from Azure Blob
