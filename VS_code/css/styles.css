@@ -326,3 +326,39 @@ button.primary {
 .match-teams {
   color: #e5e7eb !important;
 }
+/* ✅ HARD OVERRIDE — FIXES EVERYTHING */
+.match-card {
+  background: #111827 !important;   /* dark card */
+  border-radius: 16px !important;
+  border: 1px solid rgba(255,255,255,0.05) !important;
+
+  color: #e5e7eb !important;
+}
+.match-card .match-header {
+  color: #9ca3af !important;
+}
+
+.match-card .match-teams {
+  color: #e5e7eb !important;
+  font-weight: 600;
+}
+
+.match-card .match-meta {
+  color: #6b7280 !important;
+}
+
+.match-card .ai-inline {
+  color: #a78bfa !important;
+}
+
+.match-card .ai-reason {
+  color: #6b7280 !important;
+}
+``
+.match-card input {
+  background: #1e293b !important;
+  color: white !important;
+  border-radius: 10px !important;
+  border: none !important;
+}
+``
