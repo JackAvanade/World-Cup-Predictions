@@ -291,4 +291,20 @@ button.ai-button:hover {
 .matches {
   overflow: hidden;
 }
+/* ✅ Make white container clip overflow properly */
+.matches {
+  border-radius: 12px;
+  overflow: hidden;
+}
 
+/* ✅ Ensure cards don't exceed container */
+.match-card {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 12px;
+}
+
+/* ✅ Prevent grid overflow issues */
+.main-grid > * {
+  min-width: 0;
+}
