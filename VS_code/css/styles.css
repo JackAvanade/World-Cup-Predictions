@@ -310,3 +310,19 @@ button.primary {
   padding: 20px;
   color: #94a3b8;
 }
+/* ✅ FORCE OVERRIDE (FIXES YOUR ISSUE IMMEDIATELY) */
+.match-card {
+  background: #111827 !important;
+  color: #e5e7eb !important;
+}
+.match-header {
+  color: #9ca3af !important;
+}
+
+.match-meta {
+  color: #6b7280 !important;
+}
+
+.match-teams {
+  color: #e5e7eb !important;
+}
