@@ -55,7 +55,6 @@ h1, h2 {
   background: white;
   border-radius: 12px;
 
-  /* ✅ THIS FIXES YOUR PROBLEM */
   padding: 16px 24px;
 
   margin-bottom: 16px;
@@ -113,7 +112,7 @@ button.ai-button {
    MATCH CARDS ✅ CLEAN FIX
 =============================== */
 .match-card {
-  width: 100%;
+  width: calc(100% -2px);
   box-sizing: border-box; /* ✅ THIS is the key */
 
   background: #fefce8;
