@@ -557,39 +557,54 @@ function renderMatches() {
 
 card.classList.add("match-card");
 
+const savedPrediction = getPredictionForMatch(match.id);
+
 card.innerHTML = `
   <div class="match-top">
-    <span>${escapeHtml(match.stage)}</span>
+    <span>${escapeHtml(match.stage)} • ${escapeHtml(match.day)}</span>
     <span>${escapeHtml(match.time)}</span>
   </div>
 
   <div class="teams-display">
 
     <div class="team">
-      <small>${escapeHtml(match.homeTeam.slice(0,3).toUpperCase())}</small>
-      <strong>${escapeHtml(match.homeTeam)}</strong>
+      <small>${escapeHtml(match.homeTeam)}</small>
     </div>
 
     <div class="vs">
-      <span>${escapeHtml(match.homeTeam.slice(0,2).toUpperCase())}</span>
-      <b>VS</b>
-      <span>${escapeHtml(match.awayTeam.slice(0,2).toUpperCase())}</span>
+      VS
     </div>
 
     <div class="team">
-      <small>${escapeHtml(match.awayTeam.slice(0,3).toUpperCase())}</small>
-      <strong>${escapeHtml(match.awayTeam)}</strong>
+      <small>${escapeHtml(match.awayTeam)}</small>
     </div>
 
   </div>
 
+  <!-- ✅ KEEP ORIGINAL INPUT STRUCTURE -->
   <div class="prediction-box">
     <span>YOUR PREDICTION</span>
 
     <div class="prediction-inputs">
-      <input class="prediction-input" data-match-id="${match.id}" data-side="home">
+      <input
+        type="number"
+        class="prediction-input"
+        data-match-id="${match.id}"
+        data-side="home"
+        value="${savedPrediction?.home || ""}"
+        ${match.played ? "disabled" : ""}
+      />
+
       <span>-</span>
-      <input class="prediction-input" data-match-id="${match.id}" data-side="away">
+
+      <input
+        type="number"
+        class="prediction-input"
+        data-match-id="${match.id}"
+        data-side="away"
+        value="${savedPrediction?.away || ""}"
+        ${match.played ? "disabled" : ""}
+      />
     </div>
   </div>
 
