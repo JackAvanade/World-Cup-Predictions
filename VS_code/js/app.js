@@ -555,68 +555,22 @@ function renderMatches() {
       ? `${match.time} UTC${match.utcOffset >= 0 ? "+" + match.utcOffset : match.utcOffset}`
       : "";
 
-card.classList.add("match-card");
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
 
-const savedPrediction = getPredictionForMatch(match.id);
+        <div style="flex:1;min-width:250px;">
+          <div style="font-size:12px;color:#666;">
+            ${escapeHtml(match.stage)} • ${escapeHtml(match.day)}
+          </div>
 
-card.innerHTML = `
-  <div class="match-top">
-    <span>${escapeHtml(match.stage)} • ${escapeHtml(match.day)}</span>
-    <span>${escapeHtml(match.time)}</span>
-  </div>
+          <div style="font-size:18px;font-weight:700;margin:5px 0;">
+            ${escapeHtml(match.homeTeam)} vs ${escapeHtml(match.awayTeam)}
+          </div>
 
-  <div class="teams-display">
-
-    <div class="team">
-      <small>${escapeHtml(match.homeTeam)}</small>
-    </div>
-
-    <div class="vs">
-      VS
-    </div>
-
-    <div class="team">
-      <small>${escapeHtml(match.awayTeam)}</small>
-    </div>
-
-  </div>
-
-  <!-- ✅ KEEP ORIGINAL INPUT STRUCTURE -->
-  <div class="prediction-box">
-    <span>YOUR PREDICTION</span>
-
-    <div class="prediction-inputs">
-      <input
-        type="number"
-        class="prediction-input"
-        data-match-id="${match.id}"
-        data-side="home"
-        value="${savedPrediction?.home || ""}"
-        ${match.played ? "disabled" : ""}
-      />
-
-      <span>-</span>
-
-      <input
-        type="number"
-        class="prediction-input"
-        data-match-id="${match.id}"
-        data-side="away"
-        value="${savedPrediction?.away || ""}"
-        ${match.played ? "disabled" : ""}
-      />
-    </div>
-  </div>
-
-  <div class="match-footer">
-    ${escapeHtml(match.location)}
-  </div>
-
-  <div class="ai-inline">
-    🤖 ${getSimpleAIPrediction(match)}
-  </div>
-`;
-
+          <div style="font-size:12px;color:#666;">
+            ${escapeHtml(timeText)} • ${escapeHtml(match.location)}
+          </div>
+        </div>
 
         <div style="display:flex;align-items:center;gap:6px;">
           <input
