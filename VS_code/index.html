@@ -12,11 +12,12 @@
 
   <!-- TOP NAV -->
   <header class="topbar">
+
     <div class="logo">
-      <span class="logo-box">26</span>
+      <div class="logo-box">26</div>
       <div class="logo-text">
         <strong>GOAL CALL</strong>
-        <span>World Cup 2026</span>
+        <span>WORLD CUP 2026</span>
       </div>
     </div>
 
@@ -26,26 +27,28 @@
       <button>Leaderboard</button>
     </nav>
 
-    <div class="user-controls">
+    <div class="user-area">
       <input id="predictor-name" placeholder="Set your name">
       <button id="save-predictions">Save</button>
     </div>
+
   </header>
 
   <main class="container">
 
     <!-- HERO -->
     <section class="hero">
+
       <div class="hero-left">
-        <div class="hero-sub">FIFA WORLD CUP 2026</div>
+        <p class="hero-sub">FIFA WORLD CUP 2026 · USA</p>
 
         <h1>
           PICK EVERY MATCH.<br>
           <span>BEAT THE BOT.</span>
         </h1>
 
-        <p>
-          1 point for the winner, 1 for goal difference, 1 for exact score.
+        <p class="hero-desc">
+          1 point for the winner, 1 for the goal difference, 1 for the exact score.
           Lock in your predictions and outscore your friends.
         </p>
 
@@ -54,6 +57,27 @@
           <button>Leaderboard</button>
         </div>
       </div>
+
+      <!-- QUICK STATS (right side) -->
+      <div class="hero-stats">
+
+        <div class="stat-box">
+          <span>YOUR POINTS</span>
+          <strong>0</strong>
+        </div>
+
+        <div class="stat-box">
+          <span>RANK</span>
+          <strong>#6</strong>
+        </div>
+
+        <div class="stat-box">
+          <span>PICKS</span>
+          <strong>0/14</strong>
+        </div>
+
+      </div>
+
     </section>
 
     <!-- FILTER BAR -->
@@ -69,27 +93,38 @@
 
     <!-- MATCHES -->
     <section class="matches">
+
       <div class="section-header">
         <h2>Today</h2>
-        <span class="link">All fixtures →</span>
+        <span class="section-link">All fixtures →</span>
       </div>
 
       <div id="matches-list">Loading matches...</div>
+
     </section>
 
     <!-- LEADERBOARD -->
     <section class="leaderboard">
+
       <div class="section-header">
         <h2>Top of the table</h2>
-        <span class="link">Full leaderboard →</span>
+        <span class="section-link">Full leaderboard →</span>
       </div>
 
-      <div id="leaderboard-list">No predictions yet.</div>
+      <div id="leaderboard-list">
+        No predictions yet.
+      </div>
+
     </section>
 
   </main>
 
-  <script src="js/app.js"></script>
+  <footer class="site-footer">
+    <p>Built for World Cup 2026 ⚽</p>
+  </footer>
+
+  <script src="js/app.js" type="module"></script>
 
 </body>
 </html>
+``
