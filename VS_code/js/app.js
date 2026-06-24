@@ -88,28 +88,28 @@ async function loadAIPredictions() {
 // ===============================
 // Render AI predictions block
 // ===============================
-function renderAIPredictionsBlock(container) {
-  const aiBlock = document.createElement("div");
+//function renderAIPredictionsBlock(container) {
+//  const aiBlock = document.createElement("div");
 
-  aiBlock.style.padding = "16px";
-  aiBlock.style.marginBottom = "18px";
-  aiBlock.style.borderRadius = "10px";
-  aiBlock.style.border = "2px solid #6b5cff";
-  aiBlock.style.background = "#f4f2ff";
-  aiBlock.style.whiteSpace = "pre-line";
+ // aiBlock.style.padding = "16px";
+  //aiBlock.style.marginBottom = "18px";
+ // aiBlock.style.borderRadius = "10px";
+  //aiBlock.style.border = "2px solid #6b5cff";
+  //aiBlock.style.background = "#f4f2ff";
+ // aiBlock.style.whiteSpace = "pre-line";
 
-  aiBlock.innerHTML = `
-    <div style="font-size:20px;font-weight:700;margin-bottom:8px;">
-      AI Match Predictions
-    </div>
+//  aiBlock.innerHTML = `
+  //  <div style="font-size:20px;font-weight:700;margin-bottom:8px;">
+    //  AI Match Predictions
+   // </div>
 
-    <div style="font-size:14px;line-height:1.5;color:#222;">
-      ${escapeHtml(aiPredictionsText)}
-    </div>
-  `;
+   // <div style="font-size:14px;line-height:1.5;color:#222;">
+    //  ${escapeHtml(aiPredictionsText)}
+   // </div>
+  // `;
 
-  container.appendChild(aiBlock);
-}
+ // container.appendChild(aiBlock);
+// }
 
 // ===============================
 // Load match files from Azure Blob
@@ -971,29 +971,32 @@ function getSimpleAIPrediction(match) {
   for (const section of sections) {
     const lower = section.toLowerCase();
 
-    // Check if this section belongs to this match
     if (
       lower.includes(match.homeTeam.toLowerCase()) &&
       lower.includes(match.awayTeam.toLowerCase())
     ) {
-      // Extract predicted score
       const scoreMatch = section.match(/Predicted score:\s*(\d+\s*-\s*\d+)/i);
 
-      const winnerMatch = section.match(/Predicted winner:\s*(.+)/i);
+      const reasonMatch = section.match(/Reason:\s*(.+)/i);
 
       let score = scoreMatch ? scoreMatch[1] : "";
-      let winner = winnerMatch ? winnerMatch[1] : "";
+      let reason = reasonMatch ? reasonMatch[1] : "";
 
-      if (score || winner) {
+      // ✅ keep reason SHORT (first sentence only)
+      if (reason.includes(".")) {
+        reason = reason.split(".")[0] + ".";
+      }
+
+      if (score) {
         return `
           <strong>${score}</strong>
-          ${winner ? ` • ${winner}` : ""}
+          ${reason ? `<br><span class="ai-reason">${reason}</span>` : ""}
         `;
       }
     }
   }
 
-  return "No prediction yet.";
+  return "No prediction.";
 }
 // ===============================
 // Escape HTML helper
