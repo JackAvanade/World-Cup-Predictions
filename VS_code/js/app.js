@@ -966,16 +966,36 @@ function saveAIPredictionsToLeaderboard(aiText) {
 function getSimpleAIPrediction(match) {
   if (!aiPredictionsText) return "Loading...";
 
-  const text = aiPredictionsText.toLowerCase();
+  const sections = aiPredictionsText.split("Match:");
 
-  const matchLine = `${match.homeTeam} vs ${match.awayTeam}`.toLowerCase();
+  for (const section of sections) {
+    const lower = section.toLowerCase();
 
-  if (text.includes(match.homeTeam.toLowerCase()) &&
-      text.includes(match.awayTeam.toLowerCase())) {
+    // Check if this section belongs to this match
+    if (
+      lower.includes(match.homeTeam.toLowerCase()) &&
+      lower.includes(match.awayTeam.toLowerCase())
+    ) {
+      // Extract predicted score
+      const scoreMatch = section.match(/Predicted score:\s*(\d+\s*-\s*\d+)/i);
 
-    // Return shortened version of AI text for now
-    return "Prediction available above 👆";
+      const winnerMatch = section.match(/Predicted winner:\s*(.+)/i);
+
+      let score = scoreMatch ? scoreMatch[1] : "";
+      let winner = winnerMatch ? winnerMatch[1] : "";
+
+      if (score || winner) {
+        return `
+          <strong>${score}</strong>
+          ${winner ? ` • ${winner}` : ""}
+        `;
+      }
+    }
   }
+
+  return "No prediction yet.";
+}
+
 
   return "No AI prediction found.";
 }
