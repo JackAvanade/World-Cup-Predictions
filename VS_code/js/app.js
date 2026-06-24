@@ -516,8 +516,6 @@ function renderMatches() {
 
   container.innerHTML = "";
 
-  renderAIPredictionsBlock(container);
-
   let matches = [...allMatches].sort((a, b) => {
     const dateA = a.dateObj instanceof Date && !isNaN(a.dateObj)
       ? a.dateObj.getTime()
