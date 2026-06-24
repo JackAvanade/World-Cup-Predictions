@@ -114,16 +114,16 @@ button.ai-button {
 =============================== */
 .match-card {
   width: 100%;
-  box-sizing: border-box;
+  box-sizing: border-box; /* ✅ THIS is the key */
 
   background: #fefce8;
-
   border: 1px solid #e5e7eb;
   border-radius: 12px;
 
   padding: 14px;
   margin-bottom: 12px;
 }
+
 
 /* ✅ layout inside card */
 .match-row {
