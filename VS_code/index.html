@@ -10,55 +10,64 @@
 
 <body>
 
+  <!-- HEADER -->
   <header class="site-header">
-    <h1>WORLD CUP PREDICTOR</h1>
-    <p>Make your predictions!</p>
+    <h1>World Cup Predictor 2026</h1>
+    <p>Make predictions. Beat your friends. Beat the AI Bot 🤖</p>
   </header>
 
   <main class="container">
 
-    <!-- ✅ MATCHES -->
-    <section class="card">
-      <h2>Matches</h2>
+    <!-- CONTROLS BAR -->
+    <section class="controls card">
+      
+      <div class="controls-row">
+        <div class="controls-left">
+          <label>Your name:</label>
+          <input id="predictor-name" placeholder="Enter your name">
+          
+          <button id="save-predictions" class="primary">Save</button>
+        </div>
 
-      <!-- ✅ Predictor input -->
-      <div style="margin-bottom:15px;">
-        <label><strong>Your name:</strong></label>
-        <input id="predictor-name" placeholder="Enter your name" style="padding:8px;margin-left:10px;">
-        <button id="save-predictions">Save Predictions</button>
+        <div class="controls-right">
+          <button id="filter-all">All</button>
+          <button id="filter-played">Played</button>
+          <button id="filter-unplayed">Upcoming</button>
+
+          <select id="game-day-select"></select>
+
+          <button id="refresh-ai" class="ai-button">Refresh AI 🤖</button>
+        </div>
       </div>
-
-      <!-- ✅ Filters -->
-      <div style="margin-bottom:15px; display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
-        <button id="filter-all">All</button>
-        <button id="filter-played">Played</button>
-        <button id="filter-unplayed">Unplayed</button>
-        <select id="game-day-select" style="margin-left:10px;">
-          <option value="">All days</option>
-        </select>
-        <button id="save-results" style="margin-left:auto;">Save Results</button>
-      </div>
-
-      <!-- ✅ Matches go here -->
-      <div id="matches-list">Loading matches...</div>
 
     </section>
 
-    <!-- ✅ LEADERBOARD -->
-    <section class="card">
-      <h2>Leaderboard</h2>
-      <div id="leaderboard-list">
-        No predictions yet.
-      </div>
-    </section>
+    <!-- MAIN GRID -->
+    <div class="main-grid">
+
+      <!-- MATCHES -->
+      <section class="card matches">
+        <h2>Matches</h2>
+        <div id="matches-list">Loading matches...</div>
+      </section>
+
+      <!-- LEADERBOARD -->
+      <section class="card leaderboard">
+        <h2>Leaderboard</h2>
+        <div id="leaderboard-list">
+          No predictions yet.
+        </div>
+      </section>
+
+    </div>
 
   </main>
 
+  <!-- FOOTER -->
   <footer class="site-footer">
-    <p>Designed with football spirit.</p>
+    <p>Built for World Cup 2026 ⚽</p>
   </footer>
 
-  <!-- ✅ IMPORTANT: this links your JavaScript -->
   <script src="js/app.js" type="module"></script>
 
 </body>
