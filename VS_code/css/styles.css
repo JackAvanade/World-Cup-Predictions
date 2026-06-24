@@ -189,50 +189,112 @@ button.primary {
   color: #94a3b8;
 }
 
-/* ===============================
-   MATCH CARDS ✅ FINAL DESIGN
-=============================== */
-/* ===============================
-   MATCH CARDS (IMPROVED)
-=============================== */
+/* MATCH CARD NEW DESIGN */
 .match-card {
-  background: #111827; /* ✅ softer than current */
+  background: #0b1d3a;
   border-radius: 16px;
-  padding: 18px;
-  margin-bottom: 16px;
-
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 20px;
+  margin-bottom: 20px;
 }
 
-/* ROW */
-.match-row {
+/* TOP ROW */
+.match-top {
   display: flex;
   justify-content: space-between;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* TEAMS CENTER */
+.teams-display {
+  display: flex;
+  justify-content: center;
   align-items: center;
+  gap: 40px;
+  margin: 20px 0;
 }
 
-/* HEADER (group/time) */
-.match-header {
-  font-size: 12px;
-  color: #9ca3af; /* ✅ softer grey */
-  letter-spacing: 1px;
+.team {
+  text-align: center;
 }
 
-/* TEAMS */
-.match-teams {
+.team small {
+  display: block;
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.team strong {
+  font-size: 14px;
+  color: #e5e7eb;
+}
+
+/* VS BLOCK */
+.vs {
+  text-align: center;
   font-size: 18px;
-  font-weight: 600;
-  margin: 6px 0;
-
-  color: #e5e7eb; /* ✅ OFF-WHITE (much easier to read) */
+  color: #cbd5f5;
 }
 
-/* META TEXT */
-.match-meta {
+.vs b {
+  display: block;
+  font-size: 14px;
+  margin: 4px 0;
+}
+
+/* PREDICTION BOX */
+.prediction-box {
+  background: #111827;
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 10px;
+}
+
+.prediction-box span {
   font-size: 12px;
-  color: #6b7280; /* ✅ subtle grey */
+  color: #94a3b8;
 }
 
+/* INPUTS */
+.prediction-inputs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+.prediction-inputs input {
+  width: 48px;
+  height: 48px;
+  background: #1e293b;
+  border: none;
+  border-radius: 10px;
+  text-align: center;
+  color: white;
+  font-size: 16px;
+}
+
+/* FOOTER */
+.match-footer {
+  text-align: center;
+  margin-top: 12px;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+/* AI */
+.ai-inline {
+  text-align: center;
+  margin-top: 6px;
+  color: #a78bfa;
+}
+
+/* hover effect */
+.match-card:hover {
+  transform: translateY(-2px);
+  transition: 0.2s;
+}
 /* ===============================
    INPUTS (MORE PREMIUM)
 =============================== */
