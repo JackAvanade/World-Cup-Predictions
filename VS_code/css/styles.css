@@ -213,3 +213,35 @@ button.ai-button {
   color: #9ca3af;
 }
 ``
+/* ===== FINAL FIX FOR OVERFLOW ===== */
+
+/* Force the matches container to behave */
+.matches {
+  display: block;
+  width: 100%;
+}
+
+/* Fix the card container spacing properly */
+.card {
+  padding-right: 24px;
+  padding-left: 24px;
+}
+
+/* THIS is the key fix */
+.match-card {
+  width: calc(100% - 2px); /* ✅ slightly smaller than full width */
+  box-sizing: border-box;
+
+  border-radius: 12px;
+}
+
+/* Prevent flex/content pushing outside */
+.match-row {
+  width: 100%;
+}
+
+/* Grid fix (keep this) */
+.main-grid > * {
+  min-width: 0;
+}
+
