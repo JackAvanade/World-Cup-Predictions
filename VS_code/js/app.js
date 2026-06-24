@@ -607,6 +607,12 @@ function renderMatches() {
         </div>
 
       </div>
+      <div class="ai-box">
+      <div class="ai-title">🤖 AI Bot</div>
+      <div class="ai-text">
+    ${getSimpleAIPrediction(match)}
+  </div>
+</div>
     `;
 
     container.appendChild(card);
@@ -956,6 +962,22 @@ function saveAIPredictionsToLeaderboard(aiText) {
   localStorage.setItem("worldCupPredictions", JSON.stringify(predictions));
 
   console.log("AI predictions saved:", predictions[AI_NAME]);
+}
+function getSimpleAIPrediction(match) {
+  if (!aiPredictionsText) return "Loading...";
+
+  const text = aiPredictionsText.toLowerCase();
+
+  const matchLine = `${match.homeTeam} vs ${match.awayTeam}`.toLowerCase();
+
+  if (text.includes(match.homeTeam.toLowerCase()) &&
+      text.includes(match.awayTeam.toLowerCase())) {
+
+    // Return shortened version of AI text for now
+    return "Prediction available above 👆";
+  }
+
+  return "No AI prediction found.";
 }
 
 
