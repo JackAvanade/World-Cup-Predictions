@@ -764,6 +764,55 @@ function renderLeaderboard() {
     leaderboard.appendChild(row);
   });
 }
+function saveAIPredictionsToLeaderboard(aiText) {
+  if (!aiText) return;
+
+  const AI_NAME = "AI Bot";
+
+  let predictions = getAllPredictions();
+
+  if (!predictions[AI_NAME]) {
+    predictions[AI_NAME] = {};
+  }
+
+  // Split by matches
+  const sections = aiText.split("Match:");
+
+  sections.forEach(section => {
+    const scoreMatch = section.match(/Predicted score:\s*(\d+)\s*-\s*(\d+)/i);
+    const teamsMatch = section.match(/(.+?)\s+vs\s+(.+)/i);
+
+    if (!scoreMatch || !teamsMatch) return;
+
+    const homeTeam = teamsMatch[1].trim();
+    const awayTeam = teamsMatch[2].trim();
+
+    const homeScore = scoreMatch[1];
+    const awayScore = scoreMatch[2];
+
+    // ✅ Find the match in your data
+    const match = allMatches.find(m =>
+      m.homeTeam === homeTeam &&
+      m.awayTeam === awayTeam
+    );
+
+    if (!match) return;
+
+    if (!predictions[AI_NAME][match.id]) {
+      predictions[AI_NAME][match.id] = {};
+    }
+
+    predictions[AI_NAME][match.id] = {
+      home: homeScore,
+      away: awayScore
+    };
+  });
+
+  localStorage.setItem("worldCupPredictions", JSON.stringify(predictions));
+
+  console.log("AI predictions saved:", predictions[AI_NAME]);
+}
+
 
 // ===============================
 // Escape HTML helper
