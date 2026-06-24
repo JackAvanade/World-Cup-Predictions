@@ -3,27 +3,9 @@
 =============================== */
 body {
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: #0f172a;
-}
-
-h1, h2 {
-  margin: 0;
-}
-
-/* ===============================
-   HEADER
-=============================== */
-.site-header {
-  text-align: center;
-  padding: 24px 16px;
-  background: linear-gradient(135deg, #1e293b, #111827);
+  font-family: Inter, Arial, sans-serif;
+  background: radial-gradient(circle at top, #0b1d3a, #020617);
   color: white;
-}
-
-.site-header p {
-  font-size: 14px;
-  color: #cbd5f5;
 }
 
 /* ===============================
@@ -32,159 +14,246 @@ h1, h2 {
 .container {
   max-width: 1200px;
   margin: auto;
-  padding: 16px;
-}
-
-.main-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 16px;
-
-  /* ✅ THIS IS THE IMPORTANT FIX */
-  align-items: start;
-}
-
-.main-grid > * {
-  min-width: 0;
+  padding: 20px;
 }
 
 /* ===============================
-   WHITE CARD (MATCHES + LEADERBOARD)
+   TOP BAR
 =============================== */
-.card {
-  background: white;
-  border-radius: 12px;
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
   padding: 16px 24px;
+  background: #020617;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
 
-  margin-bottom: 16px;
+/* LOGO */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-box {
+  background: #ef4444;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.logo-text span {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* NAV */
+.nav-tabs button {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  margin: 0 8px;
+  cursor: pointer;
+}
+
+.nav-tabs .active {
+  color: white;
+  font-weight: bold;
+}
+
+/* USER AREA */
+.user-area input {
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 8px;
+  color: white;
+}
+
+/* ===============================
+   HERO SECTION
+=============================== */
+.hero {
+  background: linear-gradient(135deg, #1e3a8a, #020617);
+  border-radius: 18px;
+  padding: 40px;
+  margin-bottom: 30px;
+
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+/* LEFT */
+.hero-left {
+  max-width: 600px;
+}
+
+.hero-sub {
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #facc15;
+  margin-bottom: 10px;
+}
+
+.hero h1 {
+  font-size: 56px;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.hero h1 span {
+  color: #ef4444;
+}
+
+.hero-desc {
+  margin-top: 16px;
+  color: #94a3b8;
+}
+
+.hero-buttons {
+  margin-top: 20px;
+}
+
+.hero-buttons button {
+  margin-right: 10px;
+}
+
+/* RIGHT / STATS */
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 120px);
+  gap: 12px;
+}
+
+.stat-box {
+  background: rgba(255,255,255,0.05);
+  padding: 14px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.stat-box span {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.stat-box strong {
+  font-size: 22px;
 }
 
 /* ===============================
    CONTROLS
 =============================== */
-.controls-row {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-}
-
-.controls-left,
-.controls-right {
+.controls {
   display: flex;
   gap: 10px;
-  align-items: center;
-}
-
-/* ===============================
-   INPUTS
-=============================== */
-input, select, button {
-  padding: 8px 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  margin-bottom: 20px;
 }
 
 button {
-  background: #e5e7eb;
+  border-radius: 10px;
+  border: none;
+  padding: 10px;
   cursor: pointer;
 }
 
-button:hover {
-  background: #d1d5db;
-}
-
 button.primary {
-  background: #2563eb;
+  background: #ef4444;
   color: white;
-  border: none;
 }
 
-button.ai-button {
+.ai-button {
   background: #7c3aed;
   color: white;
-  border: none;
 }
 
 /* ===============================
-   MATCH CARDS ✅ CLEAN FIX
+   SECTION HEADERS
 =============================== */
-.match-card {
-  width: calc(100% -2px);
-  box-sizing: border-box; /* ✅ THIS is the key */
-
-  background: #fefce8;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-
-  padding: 14px;
-  margin-bottom: 12px;
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
 }
 
+.section-link {
+  color: #94a3b8;
+}
 
-/* ✅ layout inside card */
+/* ===============================
+   MATCH CARDS ✅ FINAL DESIGN
+=============================== */
+.match-card {
+  background: #0f172a;
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 16px;
+
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* ROW */
 .match-row {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-/* left side */
-.match-info {
-  flex: 1;
-  min-width: 0;
-}
-
-/* right side inputs */
-.match-inputs {
-  display: flex;
   align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
 }
 
-.match-inputs input {
-  width: 42px;
-  text-align: center;
-}
-
-/* text */
+/* TEXT */
 .match-header {
   font-size: 12px;
-  color: #6b7280;
+  color: #94a3b8;
 }
 
 .match-teams {
   font-size: 18px;
-  font-weight: bold;
+  font-weight: 600;
   margin: 4px 0;
 }
 
 .match-meta {
   font-size: 12px;
-  color: #6b7280;
+  color: #64748b;
 }
 
-/* ===============================
-   AI INLINE
-=============================== */
+/* INPUTS */
+.match-inputs {
+  display: flex;
+  gap: 6px;
+}
+
+.match-inputs input {
+  width: 48px;
+  height: 48px;
+  background: #1e293b;
+  border-radius: 10px;
+  border: none;
+  color: white;
+  text-align: center;
+}
+
+/* AI INLINE */
 .ai-inline {
   margin-top: 6px;
   font-size: 13px;
-  color: #4f46e5;
+  color: #a78bfa;
 }
 
 .ai-inline strong {
-  color: #111827;
-  font-weight: 700;
+  color: white;
 }
 
 .ai-reason {
-  margin-left: 4px;
-  color: #6b7280;
+  color: #64748b;
   font-size: 12px;
 }
 
@@ -192,14 +261,26 @@ button.ai-button {
    LEADERBOARD
 =============================== */
 .leaderboard-row {
+  background: #0f172a;
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+
   display: flex;
   justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
+  align-items: center;
 }
 
-.leaderboard-score {
-  font-weight: bold;
+.rank-badge {
+  background: #1e293b;
+  padding: 6px 10px;
+  border-radius: 8px;
+  margin-right: 10px;
+}
+
+.rank-1 {
+  background: #facc15;
+  color: black;
 }
 
 /* ===============================
@@ -207,40 +288,6 @@ button.ai-button {
 =============================== */
 .site-footer {
   text-align: center;
-  padding: 14px;
-  font-size: 12px;
-  color: #9ca3af;
+  padding: 20px;
+  color: #94a3b8;
 }
-``
-/* ===== FINAL FIX FOR OVERFLOW ===== */
-
-/* Force the matches container to behave */
-.matches {
-  display: block;
-  width: 100%;
-}
-
-/* Fix the card container spacing properly */
-.card {
-  padding-right: 24px;
-  padding-left: 24px;
-}
-
-/* THIS is the key fix */
-.match-card {
-  width: calc(100% - 2px); /* ✅ slightly smaller than full width */
-  box-sizing: border-box;
-
-  border-radius: 12px;
-}
-
-/* Prevent flex/content pushing outside */
-.match-row {
-  width: 100%;
-}
-
-/* Grid fix (keep this) */
-.main-grid > * {
-  min-width: 0;
-}
-
