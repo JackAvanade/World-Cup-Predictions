@@ -752,22 +752,165 @@ function renderLeaderboard() {
     return;
   }
 
+  const leaderboardData = names.map(name => {
+    const playerPredictions = predictions[name];
+
+    let totalScore = 0;
+    let scoredMatches = 0;
+    let exactScores = 0;
+    let correctWinners = 0;
+    let correctGoalDifferences = 0;
+
+    Object.keys(playerPredictions).forEach(matchId => {
+      const match = allMatches.find(m => String(m.id) === String(matchId));
+
+      if (!match || !match.score) {
+        return;
+      }
+
+      const prediction = playerPredictions[matchId];
+
+      const predictionHome = Number(prediction.home);
+      const predictionAway = Number(prediction.away);
+
+      if (
+        Number.isNaN(predictionHome) ||
+        Number.isNaN(predictionAway)
+      ) {
+        return;
+      }
+
+      const realScore = parseScore(match.score);
+
+      if (!realScore) {
+        return;
+      }
+
+      const result = scorePrediction(
+        predictionHome,
+        predictionAway,
+        realScore.home,
+        realScore.away
+      );
+
+      totalScore += result.points;
+      scoredMatches++;
+
+      if (result.correctWinner) correctWinners++;
+      if (result.correctGoalDifference) correctGoalDifferences++;
+      if (result.exactScore) exactScores++;
+    });
+
+    return {
+      name,
+      totalScore,
+      scoredMatches,
+      exactScores,
+      correctWinners,
+      correctGoalDifferences,
+      predictionCount: Object.keys(playerPredictions).length
+    };
+  });
+
+  leaderboardData.sort((a, b) => {
+    if (b.totalScore !== a.totalScore) {
+      return b.totalScore - a.totalScore;
+    }
+
+    if (b.exactScores !== a.exactScores) {
+      return b.exactScores - a.exactScores;
+    }
+
+    return b.correctWinners - a.correctWinners;
+  });
+
   leaderboard.innerHTML = "";
 
-  names.forEach(name => {
-    const matchCount = Object.keys(predictions[name]).length;
-
+  leaderboardData.forEach((player, index) => {
     const row = document.createElement("div");
-    row.style.padding = "8px";
+
+    row.style.padding = "10px";
     row.style.borderBottom = "1px solid #ddd";
+    row.style.display = "flex";
+    row.style.justifyContent = "space-between";
+    row.style.alignItems = "center";
+    row.style.gap = "12px";
+
+    const medal =
+      index === 0 ? "🥇" :
+      index === 1 ? "🥈" :
+      index === 2 ? "🥉" :
+      `${index + 1}.`;
 
     row.innerHTML = `
-      <strong>${escapeHtml(name)}</strong>
-      <span style="color:#666;"> — ${matchCount} prediction(s) saved</span>
+      <div>
+        <strong>${medal} ${escapeHtml(player.name)}</strong>
+        <div style="font-size:12px;color:#666;">
+          ${player.scoredMatches} scored match(es) •
+          ${player.correctWinners} winner(s) •
+          ${player.correctGoalDifferences} goal difference(s) •
+          ${player.exactScores} exact score(s)
+        </div>
+      </div>
+
+      <div style="font-size:18px;font-weight:700;">
+        ${player.totalScore} pts
+      </div>
     `;
 
     leaderboard.appendChild(row);
   });
+}
+function parseScore(scoreText) {
+  if (!scoreText) return null;
+
+  const match = String(scoreText).match(/(\d+)\s*-\s*(\d+)/);
+
+  if (!match) return null;
+
+  return {
+    home: Number(match[1]),
+    away: Number(match[2])
+  };
+}
+
+function getResultType(homeScore, awayScore) {
+  if (homeScore > awayScore) return "home";
+  if (awayScore > homeScore) return "away";
+  return "draw";
+}
+
+function scorePrediction(predHome, predAway, realHome, realAway) {
+  let points = 0;
+
+  const predictedWinner = getResultType(predHome, predAway);
+  const realWinner = getResultType(realHome, realAway);
+
+  const predictedGoalDifference = predHome - predAway;
+  const realGoalDifference = realHome - realAway;
+
+  const correctWinner = predictedWinner === realWinner;
+  const correctGoalDifference = predictedGoalDifference === realGoalDifference;
+  const exactScore = predHome === realHome && predAway === realAway;
+
+  if (correctWinner) {
+    points += 1;
+  }
+
+  if (correctGoalDifference) {
+    points += 1;
+  }
+
+  if (exactScore) {
+    points += 1;
+  }
+
+  return {
+    points,
+    correctWinner,
+    correctGoalDifference,
+    exactScore
+  };
 }
 function saveAIPredictionsToLeaderboard(aiText) {
   if (!aiText) return;
