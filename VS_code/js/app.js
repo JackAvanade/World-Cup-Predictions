@@ -995,12 +995,6 @@ function getSimpleAIPrediction(match) {
 
   return "No prediction yet.";
 }
-
-
-  return "No AI prediction found.";
-}
-
-
 // ===============================
 // Escape HTML helper
 // ===============================
