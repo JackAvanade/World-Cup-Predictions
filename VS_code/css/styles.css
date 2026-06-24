@@ -269,3 +269,26 @@ button.ai-button:hover {
   font-size: 12px;
   color: #9ca3af;
 }
+
+/* ✅ HARD FIX: prevent overflow */
+.match-card {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* ✅ STOP children pushing width */
+.match-card * {
+  max-width: 100%;
+}
+
+/* ✅ VERY IMPORTANT: grid child fix */
+.main-grid > * {
+  min-width: 0;
+}
+
+/* ✅ Prevent right-side content pushing layout */
+.matches {
+  overflow: hidden;
+}
+
