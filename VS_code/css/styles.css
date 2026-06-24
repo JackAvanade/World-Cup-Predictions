@@ -6,6 +6,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   background: #0f172a;
   color: #111827;
+  overflow-x: hidden;
 }
 
 h1, h2 {
@@ -16,7 +17,7 @@ h1, h2 {
    HEADER
 =============================== */
 .site-header {
-  text-align: centre;
+  text-align: center; /* ✅ FIXED */
   padding: 24px 16px;
   background: linear-gradient(135deg, #1e293b, #111827);
   color: white;
@@ -49,6 +50,8 @@ h1, h2 {
   border-radius: 10px;
   padding: 16px;
   margin-bottom: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* ===============================
@@ -59,22 +62,25 @@ h1, h2 {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 10px;
-  align-items: centre;
+  align-items: center; /* ✅ FIXED */
 }
 
 .controls-left {
   display: flex;
   gap: 10px;
-  align-items: centre;
+  align-items: center; /* ✅ FIXED */
 }
 
 .controls-right {
   display: flex;
   gap: 10px;
-  align-items: centre;
+  align-items: center; /* ✅ FIXED */
   flex-wrap: wrap;
 }
 
+/* ===============================
+   INPUTS / BUTTONS
+=============================== */
 input, select, button {
   padding: 8px 10px;
   border-radius: 6px;
@@ -117,18 +123,56 @@ button.ai-button:hover {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 16px;
+  align-items: start; /* ✅ IMPORTANT FIX */
 }
 
 /* ===============================
-   MATCH CARDS
+   MATCHES CONTAINER
 =============================== */
-.matches .match-card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 14px;
-  margin-bottom: 12px;
+.matches {
+  width: 100%;
 }
 
+#matches-list {
+  width: 100%;
+}
+
+/* ===============================
+   MATCH CARDS ✅ FIXED
+=============================== */
+.match-card {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+
+  background: #fefce8; /* softer yellow */
+}
+
+/* ✅ inner layout */
+.match-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* left side */
+.match-main {
+  flex: 1;
+  min-width: 180px;
+  max-width: 100%;
+}
+
+/* text */
 .match-header {
   font-size: 12px;
   color: #6b7280;
@@ -145,39 +189,42 @@ button.ai-button:hover {
   color: #6b7280;
 }
 
+/* ✅ inputs fix */
 .match-inputs {
   display: flex;
-  align-items: centre;
+  align-items: center;
   gap: 6px;
   margin-top: 8px;
+
+  flex-shrink: 0; /* ✅ prevents overflow */
 }
 
 .match-inputs input {
-  width: 50px;
-  text-align: centre;
+  width: 48px;
+  text-align: center;
 }
 
 /* ===============================
-   AI BLOCK (PER MATCH)
+   AI INLINE (COMPACT VERSION)
 =============================== */
-.ai-box {
-  margin-top: 10px;
-  padding: 10px;
-  border-radius: 8px;
-  background: #f4f2ff;
-  border: 1px solid #ddd;
-}
-
-.ai-title {
-  font-size: 12px;
-  font-weight: bold;
-  color: #7c3aed;
-  margin-bottom: 4px;
-}
-
-.ai-text {
+.ai-inline {
+  margin-top: 8px;
   font-size: 13px;
-  color: #333;
+  color: #4f46e5;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-inline strong {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.ai-reason {
+  margin-left: 4px;
+  color: #6b7280;
+  font-size: 12px;
 }
 
 /* ===============================
@@ -186,7 +233,7 @@ button.ai-button:hover {
 .leaderboard-row {
   display: flex;
   justify-content: space-between;
-  align-items: centre;
+  align-items: center; /* ✅ FIXED */
   padding: 10px 0;
   border-bottom: 1px solid #eee;
 }
@@ -199,19 +246,12 @@ button.ai-button:hover {
   font-weight: bold;
   font-size: 16px;
 }
-.ai-reason {
-  display: block;
-  margin-top: 4px;
-  font-size: 12px;
-  color: #6b7280;
-  line-height: 1.3;
-}
 
 /* ===============================
    FOOTER
 =============================== */
 .site-footer {
-  text-align: centre;
+  text-align: center; /* ✅ FIXED */
   padding: 14px;
   font-size: 12px;
   color: #9ca3af;
