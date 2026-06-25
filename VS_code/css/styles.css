@@ -424,3 +424,6 @@ button.primary {
   border: none !important;
 }
 ``
+html {
+  scroll-behavior: smooth;
+}
