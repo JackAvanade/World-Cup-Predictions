@@ -22,9 +22,9 @@
     </div>
 
     <nav class="nav-tabs">
-      <button class="active">Today</button>
-      <button>Fixtures</button>
-      <button>Leaderboard</button>
+    <button onclick="scrollToSection('hero-section')" class="active">Today</button>
+    <button onclick="scrollToSection('matches-section')">Fixtures</button>
+    <button onclick="scrollToSection('leaderboard-section')">Leaderboard</button>
     </nav>
 
     <div class="user-area">
@@ -37,7 +37,7 @@
   <main class="container">
 
     <!-- HERO -->
-    <section class="hero">
+    <section id="hero-section" class="hero">
 
       <div class="hero-left">
         <p class="hero-sub">FIFA WORLD CUP 2026 · USA</p>
@@ -53,8 +53,8 @@
         </p>
 
         <div class="hero-buttons">
-          <button class="primary">Make picks</button>
-          <button>Leaderboard</button>
+    <button class="primary" onclick="scrollToSection('matches-section')">Make picks</button>
+    <button onclick="scrollToSection('leaderboard-section')">Leaderboard</button>
         </div>
       </div>
 
@@ -92,7 +92,7 @@
     </section>
 
     <!-- MATCHES -->
-    <section class="matches">
+  <section id="matches-section" class="matches">
 
       <div class="section-header">
         <h2>Today</h2>
@@ -104,7 +104,7 @@
     </section>
 
     <!-- LEADERBOARD -->
-    <section class="leaderboard">
+    <section id="leaderboard-section" class="leaderboard">
 
       <div class="section-header">
         <h2>Top of the table</h2>
