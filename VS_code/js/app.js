@@ -967,29 +967,38 @@ function getSimpleAIPrediction(match) {
       lower.includes(match.homeTeam.toLowerCase()) &&
       lower.includes(match.awayTeam.toLowerCase())
     ) {
-      const scoreMatch = section.match(/Predicted score:\s*(\d+\s*-\s*\d+)/i);
-
+      const scoreMatch = section.match(/Predicted score:\s*(\d+)\s*-\s*(\d+)/i);
+      const winnerMatch = section.match(/Predicted winner:\s*(.+)/i);
       const reasonMatch = section.match(/Reason:\s*(.+)/i);
 
-      let score = scoreMatch ? scoreMatch[1] : "";
+      if (!scoreMatch) return "No prediction";
+
+      let homeScore = Number(scoreMatch[1]);
+      let awayScore = Number(scoreMatch[2]);
+
+      const winner = winnerMatch ? winnerMatch[1].toLowerCase() : "";
       let reason = reasonMatch ? reasonMatch[1] : "";
 
-      // ✅ keep reason SHORT (first sentence only)
+
+      if (winner && winner.includes(match.awayTeam.toLowerCase())) {
+        [homeScore, awayScore] = [awayScore, homeScore];
+      }
+
+      // shorten reason
       if (reason.includes(".")) {
         reason = reason.split(".")[0] + ".";
       }
 
-      if (score) {
-        return `
-          <strong>${score}</strong>
-          ${reason ? `<br><span class="ai-reason">${reason}</span>` : ""}
-        `;
-      }
+      return `
+        <strong>${homeScore}-${awayScore}</strong>
+        ${reason ? `<span class="ai-reason">• ${reason}</span>` : ""}
+      `;
     }
   }
 
   return "No prediction.";
 }
+``
 // ===============================
 // Escape HTML helper
 // ===============================
