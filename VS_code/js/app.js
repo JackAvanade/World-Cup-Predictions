@@ -1020,3 +1020,38 @@ function scrollToSection(id) {
     });
   }
 }
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
+}
+
+/* ✅ Wait until page is ready */
+window.addEventListener("DOMContentLoaded", () => {
+
+  document.getElementById("nav-today")?.addEventListener("click", () => {
+    scrollTo("hero-section");
+  });
+
+  document.getElementById("nav-fixtures")?.addEventListener("click", () => {
+    scrollTo("matches-section");
+  });
+
+  document.getElementById("nav-leaderboard")?.addEventListener("click", () => {
+    scrollTo("leaderboard-section");
+  });
+
+  document.getElementById("btn-make-picks")?.addEventListener("click", () => {
+    scrollTo("matches-section");
+  });
+
+  document.getElementById("btn-leaderboard")?.addEventListener("click", () => {
+    scrollTo("leaderboard-section");
+  });
+
+});
+
